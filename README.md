@@ -1,2 +1,2 @@
-# rms-template
-Template repository for microservices
+# rms-cctv
+CCTV system service
