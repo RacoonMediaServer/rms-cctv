@@ -8,8 +8,8 @@ import (
 type Interval int
 
 const (
-	Begin Interval = iota
-	End
+	End Interval = iota
+	Begin
 	Once
 )
 

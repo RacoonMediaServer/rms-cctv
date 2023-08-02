@@ -53,6 +53,7 @@ func (c *onvifController) GetEvents() ([]*iva.Event, error) {
 		Timeout:      xsd.Duration(fmt.Sprintf("PT%dS", maxNetworkTimeout/(2*time.Second))),
 	}
 	if err := c.dev.CreateRequest(request).WithEndpoint(c.eventsEndpoint).WithContext(ctx).Do().Unmarshal(&response); err != nil {
+		c.clearCache()
 		return nil, fmt.Errorf("method PullMessages failed: %w", err)
 	}
 
@@ -96,6 +97,7 @@ func (c *onvifController) GetSnapshot(profileToken string) ([]byte, error) {
 
 	resp, err := httpClient.Get(c.snapshotUrl.String())
 	if err != nil {
+		c.clearCache()
 		return nil, fmt.Errorf("screenshot request failed: %w", err)
 	}
 	defer resp.Body.Close()
@@ -169,4 +171,11 @@ func (c *onvifController) subscribe() error {
 	}
 	c.eventsEndpoint = string(response.SubscriptionReference.Address)
 	return nil
+}
+
+func (c *onvifController) clearCache() {
+	c.dev = nil
+	c.streamUrl = ""
+	c.eventsEndpoint = ""
+	c.snapshotUrl = nil
 }
