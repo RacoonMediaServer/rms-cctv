@@ -2,8 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/RacoonMediaServer/rms-cctv/internal/camera"
 	"github.com/RacoonMediaServer/rms-cctv/internal/config"
 	"github.com/RacoonMediaServer/rms-cctv/internal/db"
+	"github.com/RacoonMediaServer/rms-cctv/internal/manager"
+	"github.com/RacoonMediaServer/rms-cctv/internal/reactor"
+	"github.com/RacoonMediaServer/rms-cctv/internal/service"
+	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
 	"github.com/RacoonMediaServer/rms-packages/pkg/service/servicemgr"
 	"github.com/urfave/cli/v2"
 	"go-micro.dev/v4"
@@ -20,7 +25,7 @@ func main() {
 
 	useDebug := false
 
-	service := micro.NewService(
+	microService := micro.NewService(
 		micro.Name(serviceName),
 		micro.Version(Version),
 		micro.Flags(
@@ -34,7 +39,7 @@ func main() {
 		),
 	)
 
-	service.Init(
+	microService.Init(
 		micro.Action(func(context *cli.Context) error {
 			configFile := fmt.Sprintf("/etc/rms/%s.json", serviceName)
 			if context.IsSet("config") {
@@ -48,19 +53,25 @@ func main() {
 		_ = logger.Init(logger.WithLevel(logger.DebugLevel))
 	}
 
-	_ = servicemgr.NewServiceFactory(service)
+	_ = servicemgr.NewServiceFactory(microService)
 
 	_, err := db.Connect(config.Config().Database)
 	if err != nil {
 		logger.Fatalf("Connect to database failed: %s", err)
 	}
 
-	// регистрируем хендлеры
-	//if err := rms_bot.RegisterRmsBotHandler(service.Server(), bot); err != nil {
-	//	logger.Fatalf("Register service failed: %s", err)
-	//}
+	camFactory := camera.NewFactory()
+	cctvService := service.Service{
+		DeviceManager: manager.New(camFactory),
+		Reactor:       reactor.New(),
+	}
 
-	if err := service.Run(); err != nil {
+	// регистрируем хендлеры
+	if err := rms_cctv.RegisterRmsCctvHandler(microService.Server(), &cctvService); err != nil {
+		logger.Fatalf("Register microService failed: %s", err)
+	}
+
+	if err := microService.Run(); err != nil {
 		logger.Fatalf("Run service failed: %s", err)
 	}
 }

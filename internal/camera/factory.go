@@ -7,12 +7,25 @@ import (
 
 type Type int
 
+type ID uint32
+
 const (
 	AutoDetect Type = iota
 	Onvif
 )
 
-func New(ctx context.Context, u *url.URL, t Type) Controller {
+type factory struct {
+}
+
+type Factory interface {
+	New(ctx context.Context, u *url.URL, t Type) Controller
+}
+
+func NewFactory() Factory {
+	return &factory{}
+}
+
+func (f factory) New(ctx context.Context, u *url.URL, t Type) Controller {
 	switch t {
 	case AutoDetect:
 		fallthrough

@@ -1,8 +1,7 @@
-package incidents
+package camera
 
 import (
 	"context"
-	"github.com/RacoonMediaServer/rms-cctv/internal/camera"
 	"github.com/RacoonMediaServer/rms-cctv/internal/iva"
 	"sync"
 	"time"
@@ -10,13 +9,10 @@ import (
 
 const retryInterval = 10 * time.Second
 
-type EventConsumer interface {
-	Event(event *iva.Event)
-	Error(err error)
-}
+type EventConsumer func(event *iva.PackedEvent)
 
 type Listener struct {
-	cam      camera.Events
+	cam      EventsService
 	consumer EventConsumer
 
 	ctx    context.Context
@@ -24,7 +20,7 @@ type Listener struct {
 	wg     sync.WaitGroup
 }
 
-func NewListener(cam camera.Events, consumer EventConsumer) *Listener {
+func NewListener(cam EventsService, consumer EventConsumer) *Listener {
 	l := Listener{
 		cam:      cam,
 		consumer: consumer,
@@ -37,7 +33,7 @@ func NewListener(cam camera.Events, consumer EventConsumer) *Listener {
 		l.listen()
 	}()
 
-	return nil
+	return &l
 }
 
 func (l *Listener) isDone() bool {
@@ -60,13 +56,13 @@ func (l *Listener) listen() {
 	for !l.isDone() {
 		events, err := l.cam.GetEvents()
 		if err != nil {
-			l.consumer.Error(err)
+			l.consumer(iva.PackEvent(iva.NewMalfunction(err)))
 			l.wait()
 			continue
 		}
 
 		for _, event := range events {
-			l.consumer.Event(event)
+			l.consumer(iva.PackEvent(event))
 		}
 	}
 }

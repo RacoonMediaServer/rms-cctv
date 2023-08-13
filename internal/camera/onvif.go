@@ -36,6 +36,14 @@ func newOnvifController(ctx context.Context, u *url.URL) *onvifController {
 	return &onvifController{u: u, ctx: ctx}
 }
 
+func (c *onvifController) GetDeviceName() (string, error) {
+	if err := c.connect(); err != nil {
+		return "", err
+	}
+	info := c.dev.GetDeviceInfo()
+	return info.Name(), nil
+}
+
 func (c *onvifController) GetEvents() ([]*iva.Event, error) {
 	if err := c.connect(); err != nil {
 		return nil, err

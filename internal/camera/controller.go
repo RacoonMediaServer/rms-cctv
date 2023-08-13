@@ -7,18 +7,23 @@ import (
 
 const maxNetworkTimeout = 20 * time.Second
 
-type Events interface {
+type DeviceService interface {
+	GetDeviceName() (string, error)
+}
+
+type EventsService interface {
 	// GetEvents returns actual events
 	GetEvents() ([]*iva.Event, error)
 }
 
-type Stream interface {
+type StreamService interface {
 	GetSnapshot(profileToken string) ([]byte, error)
 	GetStreamUri(profileToken string) (string, error)
 }
 
 // Controller can send commands to the specified camera
 type Controller interface {
-	Events
-	Stream
+	DeviceService
+	EventsService
+	StreamService
 }
