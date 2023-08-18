@@ -3,11 +3,14 @@ package main
 import (
 	"fmt"
 	"github.com/RacoonMediaServer/rms-cctv/internal/camera"
+	"github.com/RacoonMediaServer/rms-cctv/internal/cctv"
 	"github.com/RacoonMediaServer/rms-cctv/internal/config"
 	"github.com/RacoonMediaServer/rms-cctv/internal/db"
 	"github.com/RacoonMediaServer/rms-cctv/internal/manager"
+	"github.com/RacoonMediaServer/rms-cctv/internal/reactions"
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactor"
 	"github.com/RacoonMediaServer/rms-cctv/internal/service"
+	"github.com/RacoonMediaServer/rms-packages/pkg/pubsub"
 	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
 	"github.com/RacoonMediaServer/rms-packages/pkg/service/servicemgr"
 	"github.com/urfave/cli/v2"
@@ -62,8 +65,10 @@ func main() {
 
 	camFactory := camera.NewFactory()
 	cctvService := service.Service{
-		DeviceManager: manager.New(camFactory),
+		CameraManager: manager.New(camFactory, cctv.New()),
 		Reactor:       reactor.New(),
+		Notifier:      pubsub.NewPublisher(microService),
+		ReactFactory:  reactions.NewFactory(),
 	}
 
 	// регистрируем хендлеры

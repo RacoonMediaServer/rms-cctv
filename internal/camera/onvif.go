@@ -20,7 +20,7 @@ type onvifController struct {
 	dev            *goonvif.Device
 	ctx            context.Context
 	snapshotUrl    *url.URL
-	streamUrl      string
+	streamUrl      *url.URL
 	eventsEndpoint string
 }
 
@@ -117,12 +117,12 @@ func (c *onvifController) GetSnapshot(profileToken string) ([]byte, error) {
 	return result, nil
 }
 
-func (c *onvifController) GetStreamUri(profileToken string) (string, error) {
+func (c *onvifController) GetStreamUri(profileToken string) (*url.URL, error) {
 	var err error
 	if err = c.connect(); err != nil {
-		return "", err
+		return nil, err
 	}
-	if c.streamUrl != "" {
+	if c.streamUrl != nil {
 		return c.streamUrl, nil
 	}
 
@@ -132,10 +132,34 @@ func (c *onvifController) GetStreamUri(profileToken string) (string, error) {
 	request := media.GetStreamUri{ProfileToken: onvif.ReferenceToken(profileToken)}
 	var response media.GetStreamUriResponse
 	if err := c.dev.CreateRequest(request).WithContext(ctx).Do().Unmarshal(&response); err != nil {
-		return "", fmt.Errorf("method GetStreamUri failed: %w", err)
+		return nil, fmt.Errorf("method GetStreamUri failed: %w", err)
 	}
-	c.streamUrl = string(response.MediaUri.Uri)
+	c.streamUrl, err = url.Parse(string(response.MediaUri.Uri))
+	if err != nil {
+		return nil, fmt.Errorf("parse stream URL failed: %w", err)
+	}
 	return c.streamUrl, nil
+}
+
+func (c *onvifController) GetProfiles() ([]string, error) {
+	if err := c.connect(); err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithTimeout(c.ctx, maxNetworkTimeout)
+	defer cancel()
+
+	request := media.GetProfiles{}
+	var response media.GetProfilesResponse
+	if err := c.dev.CreateRequest(request).WithContext(ctx).Do().Unmarshal(&response); err != nil {
+		return nil, fmt.Errorf("method GetProfiles failed: %w", err)
+	}
+
+	var result []string
+	for i := range response.Profiles {
+		result = append(result, string(response.Profiles[i].Token))
+	}
+	return result, nil
 }
 
 func (c *onvifController) connect() error {
@@ -183,7 +207,7 @@ func (c *onvifController) subscribe() error {
 
 func (c *onvifController) clearCache() {
 	c.dev = nil
-	c.streamUrl = ""
+	c.streamUrl = nil
 	c.eventsEndpoint = ""
 	c.snapshotUrl = nil
 }

@@ -1,4 +1,4 @@
-package service
+package manager
 
 import (
 	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
