@@ -10,6 +10,7 @@ import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactions"
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactor"
 	"github.com/RacoonMediaServer/rms-cctv/internal/service"
+	"github.com/RacoonMediaServer/rms-cctv/internal/timeline"
 	"github.com/RacoonMediaServer/rms-packages/pkg/pubsub"
 	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
 	"github.com/RacoonMediaServer/rms-packages/pkg/service/servicemgr"
@@ -69,6 +70,7 @@ func main() {
 		Reactor:       reactor.New(),
 		Notifier:      pubsub.NewPublisher(microService),
 		ReactFactory:  reactions.NewFactory(),
+		Timeline:      timeline.New(),
 	}
 
 	// регистрируем хендлеры

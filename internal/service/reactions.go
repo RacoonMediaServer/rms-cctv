@@ -14,7 +14,7 @@ func (s Service) makeEventReactions(c *rms_cctv.Camera, schedule *rrule.Set) []r
 		s.ReactFactory.NewNotifyReaction(s.Notifier, camera, c.Name, schedule),
 	}
 	if c.Mode == rms_cctv.RecordingMode_ByEvents || c.Mode == rms_cctv.RecordingMode_Optimal {
-		result = append(result, s.ReactFactory.NewRecordingReaction(archive, c.Mode == rms_cctv.RecordingMode_Optimal))
+		result = append(result, s.ReactFactory.NewRecordingReaction(archive, s.Timeline, c.Mode == rms_cctv.RecordingMode_Optimal))
 	}
 	return result
 }
