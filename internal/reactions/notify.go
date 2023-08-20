@@ -8,16 +8,20 @@ import (
 	"github.com/teambition/rrule-go"
 	"go-micro.dev/v4"
 	"go-micro.dev/v4/logger"
+	"time"
 )
+
+const thresholdInterval = 30 * time.Second
 
 type notifyReaction struct {
 	pub        micro.Publisher
 	cam        accessor.Camera
 	cameraName string
 	schedule   *rrule.Set
+	lastTime   time.Time
 }
 
-func (n notifyReaction) React(l logger.Logger, event iva.PackedEvent) {
+func (n *notifyReaction) React(l logger.Logger, event iva.PackedEvent) {
 	if !event.IsEvent() {
 		return
 	}
@@ -30,10 +34,18 @@ func (n notifyReaction) React(l logger.Logger, event iva.PackedEvent) {
 		n.processEvent(l, e)
 		return
 	}
-	// TODO
+
+	now := time.Now()
+	if now.Sub(n.lastTime) < thresholdInterval {
+		l.Logf(logger.DebugLevel, "Event threshold reached, ignore")
+		return
+	}
+
+	n.processEvent(l, e)
 }
 
-func (n notifyReaction) processEvent(l logger.Logger, event *iva.Event) {
+func (n *notifyReaction) processEvent(l logger.Logger, event *iva.Event) {
+	l.Logf(logger.InfoLevel, "Event on camera %s: %s (interval = %d)", n.cameraName, event.Kind.String(), event.Interval)
 	snapshot, err := n.cam.TakeSnapshot(model.PrimaryProfile)
 	if err != nil {
 		l.Logf(logger.ErrorLevel, "Get snapshot failed: %s", err)
