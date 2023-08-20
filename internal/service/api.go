@@ -73,6 +73,18 @@ func (s Service) GetReplayUri(ctx context.Context, request *rms_cctv.GetReplayUr
 }
 
 func (s Service) GetSnapshot(ctx context.Context, request *rms_cctv.GetSnapshotRequest, response *rms_cctv.GetSnapshotResponse) error {
-	//TODO implement me
-	panic("implement me")
+	l := logger.Fields(map[string]interface{}{
+		"from":   "service",
+		"camera": request.CameraId,
+		"method": "GetSnapshot",
+	})
+	cam, err := s.CameraManager.GetCamera(request.CameraId)
+	if err != nil {
+		return makeError(l, "operation failed: %w", err)
+	}
+	response.Snapshot, err = cam.TakeSnapshot(model.PrimaryProfile)
+	if err != nil {
+		return makeError(l, "get snapshot failed: %w", err)
+	}
+	return nil
 }
