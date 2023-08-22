@@ -10,8 +10,8 @@ func (s Service) makeEventReactions(c *rms_cctv.Camera, schedule *rrule.Set) []r
 	camera, _ := s.CameraManager.GetCamera(c.Id)
 	archive, _ := s.CameraManager.GetArchive(c.Id)
 	result := []reactor.Reaction{
-		s.ReactFactory.NewErrorReaction(s.Notifier),
-		s.ReactFactory.NewNotifyReaction(s.Notifier, camera, c.Name, schedule),
+		s.ReactFactory.NewErrorReaction(),
+		s.ReactFactory.NewNotifyReaction(camera, c.Name, schedule),
 	}
 	if c.Mode == rms_cctv.RecordingMode_ByEvents || c.Mode == rms_cctv.RecordingMode_Optimal {
 		result = append(result, s.ReactFactory.NewRecordingReaction(archive, s.Timeline, c.Mode == rms_cctv.RecordingMode_Optimal))

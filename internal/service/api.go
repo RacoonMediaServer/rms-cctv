@@ -9,6 +9,16 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
+func (s Service) GetSettings(ctx context.Context, empty *emptypb.Empty, settings *rms_cctv.CctvSettings) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s Service) SetSettings(ctx context.Context, settings *rms_cctv.CctvSettings, empty *emptypb.Empty) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (s Service) GetCameras(ctx context.Context, empty *emptypb.Empty, response *rms_cctv.GetCamerasResponse) error {
 	//TODO implement me
 	panic("implement me")
@@ -47,7 +57,7 @@ func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rm
 
 	s.Reactor.SetReactions(cam.ID, s.makeEventReactions(cam.Info, schedule))
 
-	l.Logf(logger.InfoLevel, "Camera added", c.Name)
+	l.Log(logger.InfoLevel, "Camera added")
 	response.CameraId = cameraId
 	return nil
 }

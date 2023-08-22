@@ -4,6 +4,7 @@ import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/accessor"
 	"github.com/RacoonMediaServer/rms-cctv/internal/iva"
 	"github.com/RacoonMediaServer/rms-cctv/internal/model"
+	"github.com/RacoonMediaServer/rms-cctv/internal/settings"
 	"github.com/RacoonMediaServer/rms-packages/pkg/events"
 	"github.com/teambition/rrule-go"
 	"go-micro.dev/v4"
@@ -11,14 +12,18 @@ import (
 	"time"
 )
 
-const thresholdInterval = 30 * time.Second
-
+// TODO: в конфиг
 type notifyReaction struct {
 	pub        micro.Publisher
 	cam        accessor.Camera
 	cameraName string
 	schedule   *rrule.Set
+	settings   settings.Loader
 	lastTime   time.Time
+}
+
+func (n *notifyReaction) thresholdInterval() time.Duration {
+	return time.Duration(n.settings.Load().EventNotifyThresholdIntervalSec) * time.Second
 }
 
 func (n *notifyReaction) React(l logger.Logger, event iva.PackedEvent) {
@@ -36,10 +41,11 @@ func (n *notifyReaction) React(l logger.Logger, event iva.PackedEvent) {
 	}
 
 	now := time.Now()
-	if now.Sub(n.lastTime) < thresholdInterval {
+	if now.Sub(n.lastTime) < n.thresholdInterval() {
 		l.Logf(logger.DebugLevel, "Event threshold reached, ignore")
 		return
 	}
+	n.lastTime = now
 
 	n.processEvent(l, e)
 }

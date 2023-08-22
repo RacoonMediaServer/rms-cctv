@@ -9,7 +9,7 @@ build:
 	go build -ldflags ${LDFLAGS} -o ${BINARY_NAME} ${SOURCE_MAIN}
 
 test:
-	go test -v ${SOURCE_MAIN}
+	go test ./...
 
 run:
 	go build -ldflags ${LDFLAGS} -o ${BINARY_NAME} ${SOURCE_MAIN}

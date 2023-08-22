@@ -46,8 +46,9 @@ func (m *Manager) Add(cam *model.Camera, consumer camera.EventConsumer) error {
 
 	dev := m.f.New(m.ctx, u, camera.AutoDetect)
 	ch := channel{
-		camera: cam,
-		l:      camera.NewListener(dev, consumer),
+		camera:    cam,
+		cameraUrl: u,
+		l:         camera.NewListener(dev, consumer),
 	}
 	m.channels[cam.ID] = &ch
 	return nil

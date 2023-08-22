@@ -5,6 +5,7 @@ import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/accessor"
 	"github.com/RacoonMediaServer/rms-cctv/internal/iva"
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactor"
+	"github.com/RacoonMediaServer/rms-cctv/internal/settings"
 	"github.com/RacoonMediaServer/rms-cctv/internal/timeline"
 	"go-micro.dev/v4/logger"
 	"sync/atomic"
@@ -14,7 +15,7 @@ import (
 // TODO: в настройки
 const onceEventInterval = 30 * time.Second
 const goodQuality uint = 0
-const badQuality = 1
+const badQuality uint = 1
 
 type controlFunc func() error
 
@@ -23,13 +24,15 @@ type recordingReaction struct {
 	startFunc controlFunc
 	stopFunc  controlFunc
 	tm        timeline.Defer
+	settings  settings.Loader
 	counter   atomic.Int32
 }
 
-func newRecordingReaction(archive accessor.Archive, tm timeline.Defer, qualityControl bool) reactor.Reaction {
+func newRecordingReaction(archive accessor.Archive, settings settings.Loader, tm timeline.Defer, qualityControl bool) reactor.Reaction {
 	r := recordingReaction{
-		archive: archive,
-		tm:      tm,
+		archive:  archive,
+		tm:       tm,
+		settings: settings,
 	}
 
 	if qualityControl {
@@ -72,7 +75,13 @@ func (r *recordingReaction) start(l logger.Logger) {
 }
 
 func (r *recordingReaction) stop(l logger.Logger) {
-	if r.counter.Add(-1) != 0 {
+	newVal := r.counter.Add(-1)
+	if newVal < 0 {
+		l.Logf(logger.WarnLevel, "Events order malfunction, reset state")
+		newVal = 0
+		r.counter.Store(newVal)
+	}
+	if newVal != 0 {
 		return
 	}
 	if err := r.stopFunc(); err != nil {
