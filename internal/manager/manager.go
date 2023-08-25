@@ -19,7 +19,7 @@ type Manager struct {
 	backend cctv.Backend
 
 	mu       sync.RWMutex
-	channels map[uint32]*channel
+	channels map[model.CameraID]*channel
 	ctx      context.Context
 	cancel   context.CancelFunc
 }
@@ -29,7 +29,7 @@ func New(f camera.Factory, backend cctv.Backend) *Manager {
 		l:        logger.Fields(map[string]interface{}{"from": "manager"}),
 		f:        f,
 		backend:  backend,
-		channels: map[uint32]*channel{},
+		channels: map[model.CameraID]*channel{},
 	}
 	m.ctx, m.cancel = context.WithCancel(context.Background())
 	return &m
@@ -106,7 +106,7 @@ func (m *Manager) Register(cam *model.Camera) error {
 	return nil
 }
 
-func (m *Manager) GetCamera(id uint32) (accessor.Camera, error) {
+func (m *Manager) GetCamera(id model.CameraID) (accessor.Camera, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -125,7 +125,7 @@ func (m *Manager) GetCamera(id uint32) (accessor.Camera, error) {
 	return &a, nil
 }
 
-func (m *Manager) GetArchive(id uint32) (accessor.Archive, error) {
+func (m *Manager) GetArchive(id model.CameraID) (accessor.Archive, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -158,6 +158,33 @@ func (m *Manager) Unregister(cam *model.Camera) error {
 			return fmt.Errorf("cannot delete secondary stream: %w", err)
 		}
 		cam.SecondaryExternalStreamID = ""
+	}
+
+	return nil
+}
+
+func (m *Manager) removeAndReturn(id model.CameraID) *model.Camera {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	ch, ok := m.channels[id]
+	if !ok {
+		return nil
+	}
+
+	ch.l.Stop()
+	delete(m.channels, id)
+	return ch.camera
+}
+
+func (m *Manager) Remove(id model.CameraID) error {
+	cam := m.removeAndReturn(id)
+	if cam == nil {
+		return errors.New("camera not found")
+	}
+
+	if err := m.Unregister(cam); err != nil {
+		m.l.Logf(logger.ErrorLevel, "Unregister camera %d failed: %s", id, err)
 	}
 
 	return nil

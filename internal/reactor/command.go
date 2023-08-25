@@ -1,10 +1,12 @@
 package reactor
 
+import "github.com/RacoonMediaServer/rms-cctv/internal/model"
+
 type setReactionsCommand struct {
-	cameraId  uint32
+	cameraId  model.CameraID
 	reactions []Reaction
 }
 
 type dropReactionsCommand struct {
-	cameraId uint32
+	cameraId model.CameraID
 }

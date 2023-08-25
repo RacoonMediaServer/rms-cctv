@@ -1,6 +1,7 @@
 package iva
 
 import (
+	"github.com/RacoonMediaServer/rms-cctv/internal/model"
 	"github.com/RacoonMediaServer/rms-packages/pkg/events"
 	"time"
 )
@@ -14,7 +15,7 @@ const (
 )
 
 type Event struct {
-	CameraId  uint32
+	CameraId  model.CameraID
 	Kind      events.Alert_Kind
 	Interval  Interval
 	Timestamp time.Time

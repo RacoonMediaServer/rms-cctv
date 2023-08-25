@@ -1,5 +1,7 @@
 package iva
 
+import "github.com/RacoonMediaServer/rms-cctv/internal/model"
+
 type PackedEvent struct {
 	content interface{}
 }
@@ -8,7 +10,7 @@ func PackEvent[T Event | Malfunction](content *T) *PackedEvent {
 	return &PackedEvent{content: content}
 }
 
-func (e *PackedEvent) SetCameraId(id uint32) {
+func (e *PackedEvent) SetCameraId(id model.CameraID) {
 	switch event := e.content.(type) {
 	case *Event:
 		event.CameraId = id
@@ -19,7 +21,7 @@ func (e *PackedEvent) SetCameraId(id uint32) {
 	}
 }
 
-func (e *PackedEvent) CameraId() uint32 {
+func (e *PackedEvent) CameraId() model.CameraID {
 	switch event := e.content.(type) {
 	case *Event:
 		return event.CameraId

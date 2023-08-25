@@ -3,6 +3,7 @@ package reactor
 import (
 	"context"
 	"github.com/RacoonMediaServer/rms-cctv/internal/iva"
+	"github.com/RacoonMediaServer/rms-cctv/internal/model"
 	"go-micro.dev/v4/logger"
 	"sync"
 )
@@ -16,14 +17,14 @@ type Reactor struct {
 	ch     chan interface{}
 	l      logger.Logger
 
-	r map[uint32][]Reaction
+	r map[model.CameraID][]Reaction
 }
 
 func New() *Reactor {
 	e := &Reactor{
 		ch: make(chan interface{}, maxEvents),
 		l:  logger.Fields(map[string]interface{}{"from": "reactor"}),
-		r:  make(map[uint32][]Reaction),
+		r:  make(map[model.CameraID][]Reaction),
 	}
 	e.ctx, e.cancel = context.WithCancel(context.Background())
 	e.wg.Add(1)
@@ -39,11 +40,11 @@ func (r *Reactor) PushEvent(event *iva.PackedEvent) {
 	r.ch <- event
 }
 
-func (r *Reactor) SetReactions(cameraId uint32, reactions []Reaction) {
+func (r *Reactor) SetReactions(cameraId model.CameraID, reactions []Reaction) {
 	r.ch <- &setReactionsCommand{cameraId: cameraId, reactions: reactions}
 }
 
-func (r *Reactor) DropReactions(cameraId uint32) {
+func (r *Reactor) DropReactions(cameraId model.CameraID) {
 	r.ch <- &dropReactionsCommand{cameraId: cameraId}
 }
 

@@ -5,9 +5,11 @@ import (
 	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
 )
 
+type CameraID uint32
+
 type Camera struct {
-	ID                        uint32
-	Info                      *rms_cctv.Camera
+	ID                        CameraID         `gorm:"primaryKey;autoIncrement"`
+	Info                      *rms_cctv.Camera `gorm:"embedded"`
 	PrimaryProfileToken       string
 	PrimaryExternalStreamID   cctv.ID
 	SecondaryProfileToken     string

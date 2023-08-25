@@ -11,13 +11,22 @@ import (
 type DeviceManager interface {
 	Register(cam *model.Camera) error
 	Unregister(cam *model.Camera) error
+
 	Add(cam *model.Camera, consumer camera.EventConsumer) error
-	GetCamera(id uint32) (accessor.Camera, error)
-	GetArchive(id uint32) (accessor.Archive, error)
+	Remove(id model.CameraID) error
+
+	GetCamera(id model.CameraID) (accessor.Camera, error)
+	GetArchive(id model.CameraID) (accessor.Archive, error)
 }
 
 type Reactor interface {
 	PushEvent(event *iva.PackedEvent)
-	SetReactions(cameraId uint32, reactions []reactor.Reaction)
-	DropReactions(cameraId uint32)
+	SetReactions(cameraId model.CameraID, reactions []reactor.Reaction)
+	DropReactions(cameraId model.CameraID)
+}
+
+type Database interface {
+	AddCamera(camera *model.Camera) error
+	LoadCameras() ([]*model.Camera, error)
+	RemoveCamera(id model.CameraID) error
 }

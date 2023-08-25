@@ -31,7 +31,7 @@ func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rm
 		"method": "AddCamera",
 	})
 
-	schedule, err := rrule.StrToRRuleSet(c.Schedule)
+	_, err := rrule.StrToRRuleSet(c.Schedule)
 	if err != nil {
 		return makeError(l, "parse camera schedule failed: %w", err)
 	}
@@ -41,24 +41,25 @@ func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rm
 		return makeError(l, "register camera on the external CCTV system failed: %w", err)
 	}
 
-	// TODO: add to database
-	// XXX: get camera ID
-	const cameraId = 0
-	cam.ID = cameraId
-	cam.Info.Id = cameraId
-
-	if err := s.CameraManager.Add(&cam, s.Reactor.PushEvent); err != nil {
-		// TODO: drop from database
+	if err = s.Database.AddCamera(&cam); err != nil {
 		if err := s.CameraManager.Unregister(&cam); err != nil {
 			l.Logf(logger.ErrorLevel, "Unregister camera failed: %s", err)
 		}
-		return makeError(l, "register camera failed: %w", err)
+		return makeError(l, "add camera to database failed: %w", err)
 	}
 
-	s.Reactor.SetReactions(cam.ID, s.makeEventReactions(cam.Info, schedule))
+	if err = s.registerCamera(&cam); err != nil {
+		if err := s.Database.RemoveCamera(cam.ID); err != nil {
+			l.Logf(logger.ErrorLevel, "Remove camera failed: %s", err)
+		}
+		if err := s.CameraManager.Unregister(&cam); err != nil {
+			l.Logf(logger.ErrorLevel, "Unregister camera failed: %s", err)
+		}
+		return makeError(l, "initialize camera failed: %w", err)
+	}
 
 	l.Log(logger.InfoLevel, "Camera added")
-	response.CameraId = cameraId
+	response.CameraId = uint32(cam.ID)
 	return nil
 }
 
@@ -68,8 +69,20 @@ func (s Service) ModifyCamera(ctx context.Context, c *rms_cctv.Camera, empty *em
 }
 
 func (s Service) DeleteCamera(ctx context.Context, request *rms_cctv.DeleteCameraRequest, empty *emptypb.Empty) error {
-	//TODO implement me
-	panic("implement me")
+	l := logger.Fields(map[string]interface{}{
+		"from":   "service",
+		"camera": request.CameraId,
+		"method": "DeleteCamera",
+	})
+
+	id := model.CameraID(request.CameraId)
+	if err := s.Database.RemoveCamera(id); err != nil {
+		return makeError(l, "cannot remove camera from db: %w", err)
+	}
+	if err := s.CameraManager.Remove(id); err != nil {
+		l.Logf(logger.ErrorLevel, "stop camera failed: %w", err)
+	}
+	return nil
 }
 
 func (s Service) GetLiveUri(ctx context.Context, request *rms_cctv.GetLiveUriRequest, response *rms_cctv.GetLiveUriResponse) error {
@@ -88,7 +101,7 @@ func (s Service) GetSnapshot(ctx context.Context, request *rms_cctv.GetSnapshotR
 		"camera": request.CameraId,
 		"method": "GetSnapshot",
 	})
-	cam, err := s.CameraManager.GetCamera(request.CameraId)
+	cam, err := s.CameraManager.GetCamera(model.CameraID(request.CameraId))
 	if err != nil {
 		return makeError(l, "operation failed: %w", err)
 	}
