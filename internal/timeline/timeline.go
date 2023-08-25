@@ -8,6 +8,7 @@ import (
 )
 
 const tickResolution = 100 * time.Millisecond
+const maxPoints = 100
 
 type timeline struct {
 	ch     chan *point
@@ -25,7 +26,8 @@ type point struct {
 
 func New() Timeline {
 	t := timeline{
-		t: time.NewTicker(tickResolution),
+		t:  time.NewTicker(tickResolution),
+		ch: make(chan *point, maxPoints),
 	}
 	t.ctx, t.cancel = context.WithCancel(context.Background())
 	t.wg.Add(1)
