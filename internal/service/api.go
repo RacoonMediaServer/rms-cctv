@@ -10,13 +10,15 @@ import (
 )
 
 func (s Service) GetSettings(ctx context.Context, empty *emptypb.Empty, settings *rms_cctv.CctvSettings) error {
-	//TODO implement me
-	panic("implement me")
+	localSettings := s.SettingsProvider.Load()
+	settings.OneEventDefaultDurationSec = localSettings.OneEventDefaultDurationSec
+	settings.EventNotifyThresholdIntervalSec = localSettings.EventNotifyThresholdIntervalSec
+	return nil
 }
 
 func (s Service) SetSettings(ctx context.Context, settings *rms_cctv.CctvSettings, empty *emptypb.Empty) error {
-	//TODO implement me
-	panic("implement me")
+	s.SettingsProvider.Save(settings)
+	return nil
 }
 
 func (s Service) GetCameras(ctx context.Context, empty *emptypb.Empty, response *rms_cctv.GetCamerasResponse) error {

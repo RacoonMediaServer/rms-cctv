@@ -26,6 +26,7 @@ func (s Service) Initialize() error {
 	if err != nil {
 		return fmt.Errorf("load cameras failed: %w", err)
 	}
+
 	for _, cam := range cameras {
 		if err = s.registerCamera(cam); err != nil {
 			logger.Errorf("Load camera %d failed: %s", cam.ID, err)
