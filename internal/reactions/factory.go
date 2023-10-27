@@ -5,14 +5,14 @@ import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactor"
 	"github.com/RacoonMediaServer/rms-cctv/internal/settings"
 	"github.com/RacoonMediaServer/rms-cctv/internal/timeline"
-	"github.com/teambition/rrule-go"
+	"github.com/RacoonMediaServer/rms-packages/pkg/schedule"
 	"go-micro.dev/v4"
 )
 
 type Factory interface {
 	NewErrorReaction() reactor.Reaction
 	NewRecordingReaction(archive accessor.Archive, tm timeline.Defer, qualityControl bool) reactor.Reaction
-	NewNotifyReaction(camera accessor.Camera, cameraName string, schedule *rrule.Set) reactor.Reaction
+	NewNotifyReaction(camera accessor.Camera, cameraName string, sched *schedule.Schedule) reactor.Reaction
 }
 
 type factory struct {
@@ -35,12 +35,12 @@ func (f factory) NewRecordingReaction(archive accessor.Archive, tm timeline.Defe
 	return newRecordingReaction(archive, f.settings, tm, qualityControl)
 }
 
-func (f factory) NewNotifyReaction(camera accessor.Camera, cameraName string, schedule *rrule.Set) reactor.Reaction {
+func (f factory) NewNotifyReaction(camera accessor.Camera, cameraName string, sched *schedule.Schedule) reactor.Reaction {
 	return &notifyReaction{
 		pub:        f.pub,
 		cam:        camera,
 		settings:   f.settings,
 		cameraName: cameraName,
-		schedule:   schedule,
+		schedule:   sched,
 	}
 }

@@ -8,9 +8,11 @@ import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/camera"
 	"github.com/RacoonMediaServer/rms-cctv/internal/cctv"
 	"github.com/RacoonMediaServer/rms-cctv/internal/model"
+	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
 	"go-micro.dev/v4/logger"
 	"net/url"
 	"sync"
+	"time"
 )
 
 type Manager struct {
@@ -123,6 +125,43 @@ func (m *Manager) GetCamera(id model.CameraID) (accessor.Camera, error) {
 		},
 	}
 	return &a, nil
+}
+
+func (m *Manager) GetStreamUri(id model.CameraID, profile model.Profile, transport rms_cctv.VideoTransport) (string, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	ch, ok := m.channels[id]
+	if !ok {
+		return "", fmt.Errorf("camera %d not found", id)
+	}
+
+	streamID := ch.camera.PrimaryExternalStreamID
+	if profile == model.SecondaryProfile {
+		streamID = ch.camera.SecondaryExternalStreamID
+	}
+
+	uri, err := m.backend.GetStreamUri(streamID, transport)
+	if err != nil {
+		return "", err
+	}
+	return uri.String(), err
+}
+
+func (m *Manager) GetReplayUri(id model.CameraID, transport rms_cctv.VideoTransport, timestamp time.Time) (string, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	ch, ok := m.channels[id]
+	if !ok {
+		return "", fmt.Errorf("camera %d not found", id)
+	}
+
+	uri, err := m.backend.GetReplayUri(ch.camera.ExternalArchiveID, transport, timestamp)
+	if err != nil {
+		return "", err
+	}
+	return uri.String(), err
 }
 
 func (m *Manager) GetArchive(id model.CameraID) (accessor.Archive, error) {

@@ -52,6 +52,10 @@ github.com/RacoonMediaServer/rms-packages v1.10.0 h1:MbjUIOR/wE6XbZ0XSCDfddRF3xU
 github.com/RacoonMediaServer/rms-packages v1.10.0/go.mod h1:WvLl0QLSz8rmeqBi3E+kPk+xxykb1SQEFsfVkv00iSI=
 github.com/RacoonMediaServer/rms-packages v1.10.1 h1:/dNPcuG3AG/ZFHnpDy6cqoiyIZAwAcd9KzwgOrmM4No=
 github.com/RacoonMediaServer/rms-packages v1.10.1/go.mod h1:WvLl0QLSz8rmeqBi3E+kPk+xxykb1SQEFsfVkv00iSI=
+github.com/RacoonMediaServer/rms-packages v1.10.4 h1:HR6Y7L8TMunrqWZ9thEoK2cUjuuvfYrq6X1yS4he87Q=
+github.com/RacoonMediaServer/rms-packages v1.10.4/go.mod h1:RiGcnXZXAcnk2LCVTGI31gqfYPBUoiSxjX7L7024aB0=
+github.com/RacoonMediaServer/rms-packages v1.10.5 h1:jPzsiD5SkuD27mqdgULEexsVcRe7u2QoHKPHFYxIYQA=
+github.com/RacoonMediaServer/rms-packages v1.10.5/go.mod h1:RiGcnXZXAcnk2LCVTGI31gqfYPBUoiSxjX7L7024aB0=
 github.com/Shopify/sarama v1.19.0/go.mod h1:FVkBWblsNy7DGZRfXLU0O9RCGt5g3g3yEuWXgklEdEo=
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
 github.com/acomagu/bufpipe v1.0.3 h1:fxAGrHZTgQ9w5QqVItgzwj235/uYZYgbXitB+dLupOk=
@@ -141,6 +145,8 @@ github.com/go-acme/lego/v4 v4.4.0/go.mod h1:l3+tFUFZb590dWcqhWZegynUthtaHJbG2fev
 github.com/go-chi/chi v4.0.2+incompatible/go.mod h1:eB3wogJHnLi3x/kFX2A+IbTBlXxmMeXJVKy9tTv1XzQ=
 github.com/go-cmd/cmd v1.0.5/go.mod h1:y8q8qlK5wQibcw63djSl/ntiHUHXHGdCkPk0j4QeW4s=
 github.com/go-errors/errors v1.0.1/go.mod h1:f4zRHt4oKfwPJE5k8C9vpYG+aDHdBFUsgrm6/TyX73Q=
+github.com/go-follow/time-interval v1.0.0 h1:Gjaw5ZqJn0yX2JQYd5SUgGwoL57cI4/KtYHt2thE+7o=
+github.com/go-follow/time-interval v1.0.0/go.mod h1:LjCfzh37zpDMewHsDN3a3r7+SBhzFIGX3IGcKm3MFm4=
 github.com/go-git/gcfg v1.5.0 h1:Q5ViNfGF8zFgyJWPqYwA7qGFoMTEiBmdlkcfRmpIMa4=
 github.com/go-git/gcfg v1.5.0/go.mod h1:5m20vg6GwYabIxaOonVkTdrILxQMpEShl1xiMF4ua+E=
 github.com/go-git/go-billy/v5 v5.2.0/go.mod h1:pmpqyWchKfYfrkb/UVH4otLvyi/5gJlGI4Hb3ZqZ3W0=

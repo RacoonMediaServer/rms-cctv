@@ -7,6 +7,7 @@ import (
 	"github.com/teambition/rrule-go"
 	"go-micro.dev/v4/logger"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"time"
 )
 
 func (s Service) GetSettings(ctx context.Context, empty *emptypb.Empty, settings *rms_cctv.CctvSettings) error {
@@ -87,14 +88,45 @@ func (s Service) DeleteCamera(ctx context.Context, request *rms_cctv.DeleteCamer
 	return nil
 }
 
-func (s Service) GetLiveUri(ctx context.Context, request *rms_cctv.GetLiveUriRequest, response *rms_cctv.GetLiveUriResponse) error {
-	//TODO implement me
-	panic("implement me")
+func (s Service) GetLiveUri(ctx context.Context, request *rms_cctv.GetLiveUriRequest, response *rms_cctv.GetUriResponse) error {
+	l := logger.Fields(map[string]interface{}{
+		"from":   "service",
+		"camera": request.CameraId,
+		"method": "GetLiveUri",
+	})
+	profile := model.PrimaryProfile
+	if !request.MainProfile {
+		profile = model.SecondaryProfile
+	}
+
+	uri, err := s.CameraManager.GetStreamUri(model.CameraID(request.CameraId), profile, request.Transport)
+	if err != nil {
+		return makeError(l, "operation failed: %w", err)
+	}
+
+	response.Uri = uri
+	return nil
 }
 
-func (s Service) GetReplayUri(ctx context.Context, request *rms_cctv.GetReplayUriRequest, request2 *rms_cctv.GetReplayUriRequest) error {
-	//TODO implement me
-	panic("implement me")
+func (s Service) GetReplayUri(ctx context.Context, request *rms_cctv.GetReplayUriRequest, response *rms_cctv.GetUriResponse) error {
+	l := logger.Fields(map[string]interface{}{
+		"from":   "service",
+		"camera": request.CameraId,
+		"method": "GetReplayUri",
+	})
+
+	ts := time.Time{}
+	if request.Timestamp != nil {
+		ts = request.Timestamp.AsTime()
+	}
+
+	uri, err := s.CameraManager.GetReplayUri(model.CameraID(request.CameraId), request.Transport, ts)
+	if err != nil {
+		return makeError(l, "operation failed: %w", err)
+	}
+
+	response.Uri = uri
+	return nil
 }
 
 func (s Service) GetSnapshot(ctx context.Context, request *rms_cctv.GetSnapshotRequest, response *rms_cctv.GetSnapshotResponse) error {

@@ -1,6 +1,10 @@
 package cctv
 
-import "net/url"
+import (
+	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
+	"net/url"
+	"time"
+)
 
 type ID string
 
@@ -11,7 +15,7 @@ type StreamService interface {
 	// DeleteStream removes camera stream
 	DeleteStream(id ID) error
 	// GetStreamUri returns stream live URL
-	GetStreamUri(id ID) (*url.URL, error)
+	GetStreamUri(id ID, transport rms_cctv.VideoTransport) (*url.URL, error)
 }
 
 // RecordingController is an interface for control recording process
@@ -33,7 +37,14 @@ type RecorderService interface {
 	DeleteArchive(id ID) error
 }
 
+// ReplayService is an interface for playback recordings
+type ReplayService interface {
+	// GetReplayUri gets URI for replay recording
+	GetReplayUri(id ID, transport rms_cctv.VideoTransport, timestamp time.Time) (*url.URL, error)
+}
+
 type Backend interface {
 	StreamService
 	RecorderService
+	ReplayService
 }

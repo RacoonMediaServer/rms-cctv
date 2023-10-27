@@ -1,7 +1,9 @@
 package cctv
 
 import (
+	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
 	"net/url"
+	"time"
 )
 
 type backend struct {
@@ -17,7 +19,7 @@ func (b backend) DeleteStream(id ID) error {
 	return nil
 }
 
-func (b backend) GetStreamUri(id ID) (*url.URL, error) {
+func (b backend) GetStreamUri(id ID, transport rms_cctv.VideoTransport) (*url.URL, error) {
 	//TODO implement me
 	return url.Parse("rtsp://127.0.0.1/stream1")
 }
@@ -45,4 +47,8 @@ func (b backend) AddArchive(id ID, rotationDays uint) (ID, error) {
 func (b backend) DeleteArchive(id ID) error {
 	//TODO implement me
 	return nil
+}
+
+func (b backend) GetReplayUri(id ID, transport rms_cctv.VideoTransport, timestamp time.Time) (*url.URL, error) {
+	return nil, nil
 }

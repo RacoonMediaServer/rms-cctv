@@ -6,7 +6,7 @@ import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactions"
 	"github.com/RacoonMediaServer/rms-cctv/internal/settings"
 	"github.com/RacoonMediaServer/rms-cctv/internal/timeline"
-	"github.com/teambition/rrule-go"
+	"github.com/RacoonMediaServer/rms-packages/pkg/schedule"
 	"go-micro.dev/v4"
 	"go-micro.dev/v4/logger"
 )
@@ -38,7 +38,7 @@ func (s Service) Initialize() error {
 }
 
 func (s Service) registerCamera(cam *model.Camera) error {
-	schedule, err := rrule.StrToRRuleSet(cam.Info.Schedule)
+	sched, err := schedule.Parse(cam.Info.Schedule)
 	if err != nil {
 		return fmt.Errorf("parse schedule failed: %w", err)
 	}
@@ -47,6 +47,6 @@ func (s Service) registerCamera(cam *model.Camera) error {
 		return fmt.Errorf("manager: %w", err)
 	}
 
-	s.Reactor.SetReactions(cam.ID, s.makeEventReactions(cam.Info, schedule))
+	s.Reactor.SetReactions(cam.ID, s.makeEventReactions(cam.Info, sched))
 	return nil
 }

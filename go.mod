@@ -3,7 +3,7 @@ module github.com/RacoonMediaServer/rms-cctv
 go 1.20
 
 require (
-	github.com/RacoonMediaServer/rms-packages v1.10.1
+	github.com/RacoonMediaServer/rms-packages v1.10.5
 	github.com/urfave/cli/v2 v2.3.0
 	go-micro.dev/v4 v4.9.0
 	gorm.io/driver/postgres v1.4.7
@@ -23,6 +23,7 @@ require (
 	github.com/felixge/httpsnoop v1.0.1 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-acme/lego/v4 v4.4.0 // indirect
+	github.com/go-follow/time-interval v1.0.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
 	github.com/go-git/go-git/v5 v5.4.2 // indirect
