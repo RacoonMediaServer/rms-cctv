@@ -4,15 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/RacoonMediaServer/rms-cctv/internal/accessor"
-	"github.com/RacoonMediaServer/rms-cctv/internal/camera"
-	"github.com/RacoonMediaServer/rms-cctv/internal/cctv"
-	"github.com/RacoonMediaServer/rms-cctv/internal/model"
-	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
-	"go-micro.dev/v4/logger"
 	"net/url"
 	"sync"
 	"time"
+
+	"github.com/RacoonMediaServer/rms-cctv/internal/accessor"
+	"github.com/RacoonMediaServer/rms-cctv/internal/camera"
+	"github.com/RacoonMediaServer/rms-cctv/internal/cctv"
+	"github.com/RacoonMediaServer/rms-cctv/internal/iva"
+	"github.com/RacoonMediaServer/rms-cctv/internal/model"
+	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
+	"go-micro.dev/v4/logger"
 )
 
 type Manager struct {
@@ -46,13 +48,20 @@ func (m *Manager) Add(cam *model.Camera, consumer camera.EventConsumer) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	consumerDecorator := func(e *iva.PackedEvent) {
+		e.SetCameraId(cam.ID)
+		consumer(e)
+	}
+
 	dev := m.f.New(m.ctx, u, camera.AutoDetect)
 	ch := channel{
 		camera:    cam,
 		cameraUrl: u,
-		l:         camera.NewListener(dev, consumer),
+		l:         camera.NewListener(dev, consumerDecorator),
 	}
 	m.channels[cam.ID] = &ch
+
+	m.l.Logf(logger.InfoLevel, "Camera %s [ %d ] registered", cam.Info.Name, cam.ID)
 	return nil
 }
 
@@ -125,6 +134,18 @@ func (m *Manager) GetCamera(id model.CameraID) (accessor.Camera, error) {
 		},
 	}
 	return &a, nil
+}
+
+func (m *Manager) ListCameras() []*rms_cctv.Camera {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	list := make([]*rms_cctv.Camera, 0, len(m.channels))
+	for _, ch := range m.channels {
+		list = append(list, ch.camera.Info)
+	}
+
+	return list
 }
 
 func (m *Manager) GetStreamUri(id model.CameraID, profile model.Profile, transport rms_cctv.VideoTransport) (string, error) {

@@ -2,12 +2,13 @@ package service
 
 import (
 	"context"
+	"time"
+
 	"github.com/RacoonMediaServer/rms-cctv/internal/model"
+	"github.com/RacoonMediaServer/rms-packages/pkg/schedule"
 	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
-	"github.com/teambition/rrule-go"
 	"go-micro.dev/v4/logger"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"time"
 )
 
 func (s Service) GetSettings(ctx context.Context, empty *emptypb.Empty, settings *rms_cctv.CctvSettings) error {
@@ -23,8 +24,8 @@ func (s Service) SetSettings(ctx context.Context, settings *rms_cctv.CctvSetting
 }
 
 func (s Service) GetCameras(ctx context.Context, empty *emptypb.Empty, response *rms_cctv.GetCamerasResponse) error {
-	//TODO implement me
-	panic("implement me")
+	response.Cameras = s.CameraManager.ListCameras()
+	return nil
 }
 
 func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rms_cctv.AddCameraResponse) error {
@@ -34,7 +35,7 @@ func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rm
 		"method": "AddCamera",
 	})
 
-	_, err := rrule.StrToRRuleSet(c.Schedule)
+	_, err := schedule.Parse(c.Schedule)
 	if err != nil {
 		return makeError(l, "parse camera schedule failed: %w", err)
 	}
@@ -51,6 +52,8 @@ func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rm
 		return makeError(l, "add camera to database failed: %w", err)
 	}
 
+	cam.Info.Id = uint32(cam.ID)
+
 	if err = s.registerCamera(&cam); err != nil {
 		if err := s.Database.RemoveCamera(cam.ID); err != nil {
 			l.Logf(logger.ErrorLevel, "Remove camera failed: %s", err)
@@ -61,7 +64,7 @@ func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rm
 		return makeError(l, "initialize camera failed: %w", err)
 	}
 
-	l.Log(logger.InfoLevel, "Camera added")
+	l.Logf(logger.InfoLevel, "Camera %s [ %d ] added", cam.Info.Name, cam.ID)
 	response.CameraId = uint32(cam.ID)
 	return nil
 }
@@ -83,7 +86,7 @@ func (s Service) DeleteCamera(ctx context.Context, request *rms_cctv.DeleteCamer
 		return makeError(l, "cannot remove camera from db: %w", err)
 	}
 	if err := s.CameraManager.Remove(id); err != nil {
-		l.Logf(logger.ErrorLevel, "stop camera failed: %w", err)
+		l.Logf(logger.ErrorLevel, "stop camera %d failed: %s", id, err)
 	}
 	return nil
 }

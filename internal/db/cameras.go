@@ -18,5 +18,5 @@ func (d *Database) AddCamera(camera *model.Camera) error {
 }
 
 func (d *Database) RemoveCamera(id model.CameraID) error {
-	return d.conn.Model(&model.Camera{}).Unscoped().Delete(&model.Camera{ID: id}).Error
+	return d.conn.Model(&model.Camera{}).Unscoped().Delete(&model.Camera{}, id).Error
 }

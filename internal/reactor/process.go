@@ -2,7 +2,9 @@ package reactor
 
 import (
 	"fmt"
+
 	"github.com/RacoonMediaServer/rms-cctv/internal/iva"
+	"go-micro.dev/v4/logger"
 )
 
 func (r *Reactor) process() {
@@ -38,6 +40,7 @@ func (r *Reactor) handleEvent(event *iva.PackedEvent) {
 
 func (r *Reactor) setReactions(cmd *setReactionsCommand) {
 	r.r[cmd.cameraId] = cmd.reactions
+	r.l.Logf(logger.DebugLevel, "Reactions set for camera %d", cmd.cameraId)
 }
 
 func (r *Reactor) dropReactions(cmd *dropReactionsCommand) {

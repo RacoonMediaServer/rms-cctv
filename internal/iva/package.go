@@ -1,6 +1,10 @@
 package iva
 
-import "github.com/RacoonMediaServer/rms-cctv/internal/model"
+import (
+	"fmt"
+
+	"github.com/RacoonMediaServer/rms-cctv/internal/model"
+)
 
 type PackedEvent struct {
 	content interface{}
@@ -48,4 +52,15 @@ func (e *PackedEvent) IsEvent() bool {
 
 func (e *PackedEvent) AsEvent() *Event {
 	return e.content.(*Event)
+}
+
+func (e *PackedEvent) String() string {
+	switch event := e.content.(type) {
+	case *Event:
+		return fmt.Sprintf("%+v", *event)
+	case *Malfunction:
+		return fmt.Sprintf("%+v", *event)
+	default:
+		panic("invalid event")
+	}
 }

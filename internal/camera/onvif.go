@@ -3,16 +3,17 @@ package camera
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"time"
+
 	"github.com/RacoonMediaServer/rms-cctv/internal/iva"
 	goonvif "github.com/neirolis/onvif-go"
 	"github.com/neirolis/onvif-go/event"
 	"github.com/neirolis/onvif-go/media"
 	"github.com/neirolis/onvif-go/xsd"
 	"github.com/neirolis/onvif-go/xsd/onvif"
-	"io"
-	"net/http"
-	"net/url"
-	"time"
 )
 
 type onvifController struct {
@@ -169,8 +170,9 @@ func (c *onvifController) connect() error {
 
 	params := goonvif.DeviceParams{
 		// TODO: адекватное определение endpoint
-		Xaddr:    fmt.Sprintf("%s:80", c.u.Host),
-		Username: c.u.User.Username(),
+		Xaddr:      fmt.Sprintf("%s:80", c.u.Host),
+		Username:   c.u.User.Username(),
+		HttpClient: new(http.Client),
 	}
 	if password, set := c.u.User.Password(); set {
 		params.Password = password

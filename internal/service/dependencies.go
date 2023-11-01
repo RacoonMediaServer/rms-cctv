@@ -14,6 +14,7 @@ type DeviceManager interface {
 	Register(cam *model.Camera) error
 	Unregister(cam *model.Camera) error
 
+	ListCameras() []*rms_cctv.Camera
 	Add(cam *model.Camera, consumer camera.EventConsumer) error
 	Remove(id model.CameraID) error
 

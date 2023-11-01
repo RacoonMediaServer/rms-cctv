@@ -4,8 +4,11 @@ go 1.20
 
 require (
 	github.com/RacoonMediaServer/rms-packages v1.10.5
+	github.com/golang/mock v1.6.0
+	github.com/neirolis/onvif-go v0.0.3-b11
 	github.com/urfave/cli/v2 v2.3.0
 	go-micro.dev/v4 v4.9.0
+	google.golang.org/protobuf v1.28.1
 	gorm.io/driver/postgres v1.4.7
 	gorm.io/gorm v1.24.5
 )
@@ -31,7 +34,6 @@ require (
 	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/gobwas/ws v1.0.4 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible // indirect
-	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/gorilla/handlers v1.5.1 // indirect
@@ -45,7 +47,6 @@ require (
 	github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 // indirect
 	github.com/miekg/dns v1.1.43 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/neirolis/onvif-go v0.0.3-b11 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/oxtoacart/bpool v0.0.0-20190530202638-03653db5a59c // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
@@ -54,14 +55,12 @@ require (
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	github.com/stretchr/testify v1.8.1 // indirect
-	github.com/teambition/rrule-go v1.8.2 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/net v0.6.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
-	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
