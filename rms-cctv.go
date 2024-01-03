@@ -54,13 +54,15 @@ func main() {
 		}),
 	)
 
-	if useDebug {
+	cfg := config.Config()
+
+	if useDebug || cfg.Debug.Verbose {
 		_ = logger.Init(logger.WithLevel(logger.DebugLevel))
 	}
 
 	_ = servicemgr.NewServiceFactory(microService)
 
-	database, err := db.Connect(config.Config().Database)
+	database, err := db.Connect(cfg.Database)
 	if err != nil {
 		logger.Fatalf("Connect to database failed: %s", err)
 	}
