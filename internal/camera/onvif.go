@@ -3,6 +3,8 @@ package camera
 import (
 	"context"
 	"fmt"
+	dac "github.com/xinsnake/go-http-digest-auth-client"
+	"go-micro.dev/v4/logger"
 	"io"
 	"net/http"
 	"net/url"
@@ -18,6 +20,7 @@ import (
 
 type onvifController struct {
 	u              *url.URL
+	l              logger.Logger
 	dev            *goonvif.Device
 	ctx            context.Context
 	snapshotUrl    *url.URL
@@ -34,7 +37,14 @@ type pullMessagesResponse struct {
 const maxMessageLimit = 100
 
 func newOnvifController(ctx context.Context, u *url.URL) *onvifController {
-	return &onvifController{u: u, ctx: ctx}
+	return &onvifController{
+		u:   u,
+		ctx: ctx,
+		l: logger.Fields(map[string]interface{}{
+			"device": u.Redacted(),
+			"from":   "onvif",
+		}),
+	}
 }
 
 func (c *onvifController) GetDeviceName() (string, error) {
@@ -53,6 +63,8 @@ func (c *onvifController) GetEvents() ([]*iva.Event, error) {
 		return nil, err
 	}
 
+	c.l.Logf(logger.DebugLevel, "GetEvents...")
+
 	ctx, cancel := context.WithTimeout(c.ctx, maxNetworkTimeout)
 	defer cancel()
 
@@ -66,9 +78,12 @@ func (c *onvifController) GetEvents() ([]*iva.Event, error) {
 		return nil, fmt.Errorf("method PullMessages failed: %w", err)
 	}
 
+	c.l.Logf(logger.DebugLevel, "GetEvents READY")
+
 	var events []*iva.Event
 	for _, ev := range response.NotificationMessage {
 		for _, msg := range ev.Message.Messages {
+			c.l.Logf(logger.DebugLevel, "Got event topic=%s, operation=%s, source=%v, data=%v", ev.Topic.TopicKinds, msg.PropertyOperation, msg.Source.SimpleItem, msg.Data.SimpleItem)
 			conv := convertEvent(string(ev.Topic.TopicKinds), msg)
 			if conv != nil {
 				events = append(events, conv)
@@ -83,6 +98,9 @@ func (c *onvifController) GetSnapshot(profileToken string) ([]byte, error) {
 	if err = c.connect(); err != nil {
 		return nil, err
 	}
+
+	c.l.Logf(logger.DebugLevel, "GetSnapshot...")
+
 	if c.snapshotUrl == nil {
 		ctx, cancel := context.WithTimeout(c.ctx, maxNetworkTimeout)
 		defer cancel()
@@ -104,6 +122,11 @@ func (c *onvifController) GetSnapshot(profileToken string) ([]byte, error) {
 		Timeout: maxNetworkTimeout,
 	}
 
+	if pw, ok := c.snapshotUrl.User.Password(); ok {
+		transport := dac.NewTransport(c.u.User.Username(), pw)
+		httpClient.Transport = &transport
+	}
+
 	resp, err := httpClient.Get(c.snapshotUrl.String())
 	if err != nil {
 		c.clearCache()
@@ -111,10 +134,17 @@ func (c *onvifController) GetSnapshot(profileToken string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("request snapshot failed: invalid code %d != 200", resp.StatusCode)
+	}
+
 	result, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("download screenshot failed: %w", err)
 	}
+
+	c.l.Logf(logger.DebugLevel, "GetSnapshot READY")
+
 	return result, nil
 }
 
@@ -126,6 +156,8 @@ func (c *onvifController) GetStreamUri(profileToken string) (*url.URL, error) {
 	if c.streamUrl != nil {
 		return c.streamUrl, nil
 	}
+
+	c.l.Logf(logger.DebugLevel, "GetStreamUri...")
 
 	ctx, cancel := context.WithTimeout(c.ctx, maxNetworkTimeout)
 	defer cancel()
@@ -139,6 +171,9 @@ func (c *onvifController) GetStreamUri(profileToken string) (*url.URL, error) {
 	if err != nil {
 		return nil, fmt.Errorf("parse stream URL failed: %w", err)
 	}
+
+	c.l.Logf(logger.DebugLevel, "GetStreamUri READY")
+
 	return c.streamUrl, nil
 }
 
@@ -150,11 +185,15 @@ func (c *onvifController) GetProfiles() ([]string, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, maxNetworkTimeout)
 	defer cancel()
 
+	c.l.Logf(logger.DebugLevel, "GetProfiles...")
+
 	request := media.GetProfiles{}
 	var response media.GetProfilesResponse
 	if err := c.dev.CreateRequest(request).WithContext(ctx).Do().Unmarshal(&response); err != nil {
 		return nil, fmt.Errorf("method GetProfiles failed: %w", err)
 	}
+
+	c.l.Logf(logger.DebugLevel, "GetProfiles READY")
 
 	var result []string
 	for i := range response.Profiles {
@@ -167,6 +206,8 @@ func (c *onvifController) connect() error {
 	if c.dev != nil {
 		return nil
 	}
+
+	c.l.Logf(logger.DebugLevel, "Connecting...")
 
 	params := goonvif.DeviceParams{
 		// TODO: адекватное определение endpoint
@@ -187,6 +228,7 @@ func (c *onvifController) connect() error {
 		return fmt.Errorf("camera is unaccessible: %w", err)
 	}
 
+	c.l.Logf(logger.DebugLevel, "Connected")
 	c.dev = dev
 	return nil
 }
@@ -196,6 +238,8 @@ func (c *onvifController) subscribe() error {
 		return nil
 	}
 
+	c.l.Logf(logger.DebugLevel, "Subscribing...")
+
 	ctx, cancel := context.WithTimeout(c.ctx, maxNetworkTimeout)
 	defer cancel()
 
@@ -203,6 +247,9 @@ func (c *onvifController) subscribe() error {
 	if err := c.dev.CreateRequest(event.CreatePullPointSubscription{}).WithContext(ctx).Do().Unmarshal(&response); err != nil {
 		return fmt.Errorf("method CreatePullPointSubscription failed: %w", err)
 	}
+
+	c.l.Logf(logger.DebugLevel, "Subscribed")
+
 	c.eventsEndpoint = string(response.SubscriptionReference.Address)
 	return nil
 }
