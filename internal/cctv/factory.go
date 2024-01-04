@@ -17,6 +17,7 @@ func New(t BackendType) Backend {
 			archives: map[ID]*archive{},
 			l:        logger.Fields(map[string]interface{}{"from": "debug-backend"}),
 		}
+	default:
+		panic("unknown backend type")
 	}
-	panic("unknown backend type")
 }

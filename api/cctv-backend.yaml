@@ -1,0 +1,306 @@
+swagger: "2.0"
+info:
+  title: CCTV API
+  description: External CCTV Backend API
+  version: 1.0.0
+schemes:
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
+
+securityDefinitions:
+  key:
+    type: apiKey
+    in: header
+    name: x-token
+
+tags:
+  - name: streamService
+    description: Video streaming control
+  - name: recorderService
+    description: Video recording control
+
+paths:
+  /stream:
+    post:
+      tags:
+        - streamService
+      summary: Add stream
+      description: Register stream source
+      operationId: addStream
+      parameters:
+        - name: stream
+          in: body
+          schema:
+            type: object
+            required:
+              - url
+            properties:
+              url:
+                type: string
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            required:
+              - id
+            properties:
+              id:
+                type: string
+        '400':
+          description: Invalid URL
+        '500':
+          description: Server Error
+      security:
+        - key: [ ]
+
+  /stream/{id}:
+    get:
+      tags:
+        - streamService
+      summary: Get Stream URI
+      description: Get Stream Live URI
+      operationId: GetStreamURI
+      parameters:
+        - name: id
+          in: path
+          description: Stream ID
+          required: true
+          type: string
+        - name: transport
+          in: query
+          description: Video transport
+          default: "RTSP"
+          type: string
+          enum:
+            - RTSP
+            - HTTP_HLS_MPEGTS
+            - HTTP_HLS_MP4
+            - HTTP_HLS_ONE_CHUNK
+            - HTTP_MP4
+            - HTTP_FLV
+            - HTTP_MPEGTS
+            - HTTP_DASH
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              url:
+                type: string
+        '400':
+          description: Not supported
+        '404':
+          description: Not Found
+        '500':
+          description: Server Error
+      security:
+        - key: [ ]
+    delete:
+      tags:
+        - streamService
+      summary: Delete stream
+      description: Unregister media source
+      operationId: deleteStream
+      parameters:
+        - name: id
+          in: path
+          description: Stream ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Not Found
+        '500':
+          description: Server Error
+      security:
+        - key: [ ]
+
+  /recording:
+    post:
+      tags:
+        - recorderService
+      summary: Add recording
+      description: Add recording
+      operationId: addRecording
+      parameters:
+        - name: recording
+          in: body
+          schema:
+            type: object
+            required:
+              - streamID
+              - rotationDays
+            properties:
+              streamID:
+                type: string
+              rotationDays:
+                type: integer
+                minimum: 0
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            required:
+              - id
+            properties:
+              id:
+                type: string
+        '404':
+          description: Stream Not Found
+        '500':
+          description: Server Error
+      security:
+        - key: [ ]
+
+  /recording/{id}:
+    get:
+      tags:
+        - recorderService
+      summary: Get Replay URI
+      description: Get Replay Recording URI
+      operationId: GetReplayURI
+      parameters:
+        - name: id
+          in: path
+          description: Recording ID
+          required: true
+          type: string
+        - name: timestamp
+          in: query
+          default: 0
+          description: UNIX UTC Timestamp for replay recording
+          type: integer
+          minimum: 0
+        - name: transport
+          in: query
+          description: Video transport
+          default: "RTSP"
+          type: string
+          enum:
+            - RTSP
+            - HTTP_HLS_MPEGTS
+            - HTTP_HLS_MP4
+            - HTTP_HLS_ONE_CHUNK
+            - HTTP_MP4
+            - HTTP_FLV
+            - HTTP_MPEGTS
+            - HTTP_DASH
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              url:
+                type: string
+        '400':
+          description: Not supported
+        '404':
+          description: Not Found
+        '500':
+          description: Server Error
+      security:
+        - key: [ ]
+    delete:
+      tags:
+        - recorderService
+      summary: Delete recording
+      description: Delete recording
+      operationId: deleteRecording
+      parameters:
+        - name: id
+          in: path
+          description: Recording ID
+          required: true
+          type: string
+      responses:
+        '200':
+          description: OK
+        '404':
+          description: Not Found
+        '500':
+          description: Server Error
+      security:
+        - key: [ ]
+
+  /recording/{id}/control:
+    put:
+      tags:
+        - recorderService
+      summary: Recording control
+      description: Pause/Resume recording
+      operationId: recordingControl
+      parameters:
+        - name: id
+          in: path
+          description: Recording ID
+          required: true
+          type: string
+        - name: pause
+          in: query
+          required: true
+          description: Pause/Resume
+          type: boolean
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              url:
+                type: string
+        '404':
+          description: Not Found
+        '500':
+          description: Server Error
+      security:
+        - key: [ ]
+
+  /recording/{id}/quality:
+    put:
+      tags:
+        - recorderService
+      summary: Set recording quality
+      description: Set recording quality
+      operationId: setRecordingQuality
+      parameters:
+        - name: id
+          in: path
+          description: Recording ID
+          required: true
+          type: string
+        - name: value
+          in: query
+          required: true
+          description: Video quality (value=0 - best quality)
+          type: integer
+          minimum: 0
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: object
+            properties:
+              url:
+                type: string
+        '404':
+          description: Not Found
+        '500':
+          description: Server Error
+      security:
+        - key: [ ]
+
+definitions:
+  principal:
+    type: object
+    properties:
+      token:
+       type: string
