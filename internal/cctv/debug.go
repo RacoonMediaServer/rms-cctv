@@ -30,6 +30,14 @@ type debugBackend struct {
 	archiveCounter int
 }
 
+func newDebugBackend(l logger.Logger) Backend {
+	return &debugBackend{
+		channels: map[ID]*channel{},
+		archives: map[ID]*archive{},
+		l:        l,
+	}
+}
+
 func (b *debugBackend) AddStream(streamUrl *url.URL) (ID, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()

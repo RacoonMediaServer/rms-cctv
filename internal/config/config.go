@@ -6,6 +6,18 @@ import "github.com/RacoonMediaServer/rms-packages/pkg/configuration"
 type Configuration struct {
 	Database configuration.Database
 	Debug    configuration.Debug
+	Cctv     Cctv
+}
+
+type Backend struct {
+	Type  string
+	Host  string
+	Path  string
+	Token string
+}
+
+type Cctv struct {
+	Backend Backend
 }
 
 var config Configuration

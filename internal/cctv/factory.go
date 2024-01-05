@@ -1,22 +1,20 @@
 package cctv
 
-import "go-micro.dev/v4/logger"
-
-type BackendType int
-
-const (
-	DebugBackend BackendType = iota
-	RestBackend
+import (
+	"github.com/RacoonMediaServer/rms-cctv/internal/config"
+	"go-micro.dev/v4/logger"
 )
 
-func New(t BackendType) Backend {
-	switch t {
-	case DebugBackend:
-		return &debugBackend{
-			channels: map[ID]*channel{},
-			archives: map[ID]*archive{},
-			l:        logger.Fields(map[string]interface{}{"from": "debug-backend"}),
-		}
+func New(conf config.Backend) Backend {
+	l := logger.Fields(map[string]interface{}{
+		"from":    "backend",
+		"backend": conf.Type,
+	})
+	switch conf.Type {
+	case "debug":
+		return newDebugBackend(l)
+	case "external":
+		return newExternalBackend(l, conf)
 	default:
 		panic("unknown backend type")
 	}
