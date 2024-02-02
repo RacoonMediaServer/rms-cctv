@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/RacoonMediaServer/rms-packages/pkg/video"
 	"net/url"
 	"sync"
 	"time"
@@ -90,14 +91,14 @@ func (m *Manager) Register(cam *model.Camera) error {
 	}
 
 	cam.PrimaryProfileToken = profiles[0]
-	cam.PrimaryExternalStreamID, err = m.backend.AddStream(urls[0])
+	cam.PrimaryExternalStreamID, err = m.backend.AddStream(cam.Info, urls[0])
 	if err != nil {
 		return fmt.Errorf("register stream for profile %s failed: %w", profiles[0], err)
 	}
 
 	if len(profiles) != 1 {
 		cam.SecondaryProfileToken = profiles[1]
-		cam.SecondaryExternalStreamID, err = m.backend.AddStream(urls[1])
+		cam.SecondaryExternalStreamID, err = m.backend.AddStream(cam.Info, urls[1])
 		if err != nil {
 			if err := m.Unregister(cam); err != nil {
 				m.l.Logf(logger.ErrorLevel, "failed to unregister camera: %s", err)
@@ -148,7 +149,7 @@ func (m *Manager) ListCameras() []*rms_cctv.Camera {
 	return list
 }
 
-func (m *Manager) GetStreamUri(id model.CameraID, profile model.Profile, transport rms_cctv.VideoTransport) (string, error) {
+func (m *Manager) GetStreamUri(id model.CameraID, profile model.Profile, transport video.Transport) (string, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -169,7 +170,7 @@ func (m *Manager) GetStreamUri(id model.CameraID, profile model.Profile, transpo
 	return uri.String(), err
 }
 
-func (m *Manager) GetReplayUri(id model.CameraID, transport rms_cctv.VideoTransport, timestamp time.Time) (string, error) {
+func (m *Manager) GetReplayUri(id model.CameraID, transport video.Transport, timestamp time.Time) (string, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 

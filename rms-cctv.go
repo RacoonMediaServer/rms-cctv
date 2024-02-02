@@ -71,7 +71,7 @@ func main() {
 	settingsProvider := settings.New()
 	cctvService := service.Service{
 		Database:         database,
-		CameraManager:    manager.New(camFactory, cctv.New(cfg.Cctv.Backend)),
+		CameraManager:    manager.New(camFactory, cctv.New(cfg.Cctv.Backend, microService)),
 		Reactor:          reactor.New(),
 		Notifier:         pubsub.NewPublisher(microService),
 		ReactFactory:     reactions.NewFactory(pubsub.NewPublisher(microService), settingsProvider),

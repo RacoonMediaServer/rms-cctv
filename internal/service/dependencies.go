@@ -7,6 +7,7 @@ import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/model"
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactor"
 	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
+	"github.com/RacoonMediaServer/rms-packages/pkg/video"
 	"time"
 )
 
@@ -21,8 +22,8 @@ type DeviceManager interface {
 	GetCamera(id model.CameraID) (accessor.Camera, error)
 	GetArchive(id model.CameraID) (accessor.Archive, error)
 
-	GetStreamUri(id model.CameraID, profile model.Profile, transport rms_cctv.VideoTransport) (string, error)
-	GetReplayUri(id model.CameraID, transport rms_cctv.VideoTransport, timestamp time.Time) (string, error)
+	GetStreamUri(id model.CameraID, profile model.Profile, transport video.Transport) (string, error)
+	GetReplayUri(id model.CameraID, transport video.Transport, timestamp time.Time) (string, error)
 }
 
 type Reactor interface {
