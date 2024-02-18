@@ -12,7 +12,7 @@ type ID string
 // StreamService is an interface to external CCTV streamer
 type StreamService interface {
 	// AddStream registers camera on external CCTV system
-	AddStream(camera *rms_cctv.Camera, u *url.URL) (ID, error)
+	AddStream(adviceId string, camera *rms_cctv.Camera, u *url.URL) (ID, error)
 	// DeleteStream removes camera stream
 	DeleteStream(id ID) error
 	// GetStreamUri returns stream live URL

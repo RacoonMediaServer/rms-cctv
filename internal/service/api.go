@@ -40,8 +40,17 @@ func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rm
 		return makeError(l, "parse camera schedule failed: %w", err)
 	}
 
+	// TODO: очень много вариантов нарушить консистентность, но пока так
 	cam := model.Camera{Info: c}
-	if err := s.CameraManager.Register(&cam); err != nil {
+	if err = s.Database.AddCamera(&cam); err != nil {
+		return makeError(l, "add camera to database failed: %s", err)
+	}
+	cam.Info.Id = uint32(cam.ID)
+
+	if err = s.CameraManager.Register(&cam); err != nil {
+		if err := s.Database.RemoveCamera(cam.ID); err != nil {
+			l.Logf(logger.ErrorLevel, "Remove camera failed: %s", err)
+		}
 		return makeError(l, "register camera on the external CCTV system failed: %w", err)
 	}
 
@@ -49,10 +58,11 @@ func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rm
 		if err := s.CameraManager.Unregister(&cam); err != nil {
 			l.Logf(logger.ErrorLevel, "Unregister camera failed: %s", err)
 		}
+		if err := s.Database.RemoveCamera(cam.ID); err != nil {
+			l.Logf(logger.ErrorLevel, "Remove camera failed: %s", err)
+		}
 		return makeError(l, "add camera to database failed: %w", err)
 	}
-
-	cam.Info.Id = uint32(cam.ID)
 
 	if err = s.registerCamera(&cam); err != nil {
 		if err := s.Database.RemoveCamera(cam.ID); err != nil {

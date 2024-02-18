@@ -22,10 +22,12 @@ type externalBackend struct {
 
 const reqTimeout = 1 * time.Minute
 
-func (b externalBackend) AddStream(camera *rms_cctv.Camera, u *url.URL) (ID, error) {
+func (b externalBackend) AddStream(adviceId string, camera *rms_cctv.Camera, u *url.URL) (ID, error) {
 	req := cctv_backend.AddStreamRequest{
-		AdviceId: camera.Name,
+		AdviceId: adviceId,
+		CameraNo: camera.Id,
 		Url:      u.String(),
+		Location: camera.Name,
 	}
 
 	resp, err := b.streamService.AddStream(context.TODO(), &req, client.WithRequestTimeout(reqTimeout))

@@ -93,14 +93,16 @@ func (m *Manager) Register(cam *model.Camera) error {
 	}
 
 	cam.PrimaryProfileToken = profiles[0]
-	cam.PrimaryExternalStreamID, err = m.backend.AddStream(cam.Info, urls[0])
+	externalId := fmt.Sprintf("ch%d/main", cam.ID)
+	cam.PrimaryExternalStreamID, err = m.backend.AddStream(externalId, cam.Info, urls[0])
 	if err != nil {
 		return fmt.Errorf("register stream for profile %s failed: %w", profiles[0], err)
 	}
 
 	if len(profiles) != 1 {
 		cam.SecondaryProfileToken = profiles[1]
-		cam.SecondaryExternalStreamID, err = m.backend.AddStream(cam.Info, urls[1])
+		externalId = fmt.Sprintf("ch%d/sub", cam.ID)
+		cam.SecondaryExternalStreamID, err = m.backend.AddStream(externalId, cam.Info, urls[1])
 		if err != nil {
 			if err := m.Unregister(cam); err != nil {
 				m.l.Logf(logger.ErrorLevel, "failed to unregister camera: %s", err)
