@@ -35,5 +35,6 @@ type Reactor interface {
 type Database interface {
 	AddCamera(camera *model.Camera) error
 	LoadCameras() ([]*model.Camera, error)
+	UpdateCamera(camera *model.Camera) error
 	RemoveCamera(id model.CameraID) error
 }

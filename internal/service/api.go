@@ -54,7 +54,7 @@ func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rm
 		return makeError(l, "register camera on the external CCTV system failed: %w", err)
 	}
 
-	if err = s.Database.AddCamera(&cam); err != nil {
+	if err = s.Database.UpdateCamera(&cam); err != nil {
 		if err := s.CameraManager.Unregister(&cam); err != nil {
 			l.Logf(logger.ErrorLevel, "Unregister camera failed: %s", err)
 		}
