@@ -29,7 +29,7 @@ func convertIntervalEvent(ev *event.Message, field string, kind events.Alert_Kin
 	return &iva.Event{
 		Kind:      kind,
 		Interval:  interval,
-		Timestamp: time.Now(),
+		Timestamp: time.Now().UTC(),
 	}
 }
 
@@ -37,7 +37,7 @@ func convertSingleEvent(ev *event.Message, kind events.Alert_Kind) *iva.Event {
 	return &iva.Event{
 		Kind:      kind,
 		Interval:  iva.Once,
-		Timestamp: time.Now(),
+		Timestamp: time.Now().UTC(),
 	}
 }
 
