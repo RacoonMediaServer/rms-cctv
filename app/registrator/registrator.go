@@ -5,13 +5,15 @@ import (
 	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
 	"github.com/urfave/cli/v2"
 	"go-micro.dev/v4"
+	"go-micro.dev/v4/client"
+	"time"
 
 	// Plugins
 	_ "github.com/go-micro/plugins/v4/registry/etcd"
 )
 
 func main() {
-	camera := rms_cctv.Camera{Schedule: "{}"}
+	camera := rms_cctv.Camera{Schedule: "{}", Mode: rms_cctv.RecordingMode_Optimal}
 	service := micro.NewService(
 		micro.Name("rms-cctv.client"),
 		micro.Flags(
@@ -43,8 +45,8 @@ func main() {
 	)
 	service.Init()
 
-	client := rms_cctv.NewRmsCctvService("rms-cctv", service.Client())
-	_, err := client.AddCamera(context.Background(), &camera)
+	c := rms_cctv.NewRmsCctvService("rms-cctv", service.Client())
+	_, err := c.AddCamera(context.Background(), &camera, client.WithRequestTimeout(1*time.Minute))
 	if err != nil {
 		panic(err)
 	}
