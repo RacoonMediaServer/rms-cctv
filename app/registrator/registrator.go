@@ -5,6 +5,9 @@ import (
 	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
 	"github.com/urfave/cli/v2"
 	"go-micro.dev/v4"
+
+	// Plugins
+	_ "github.com/go-micro/plugins/v4/registry/etcd"
 )
 
 func main() {
