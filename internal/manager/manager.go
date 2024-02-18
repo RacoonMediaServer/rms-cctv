@@ -62,6 +62,8 @@ func (m *Manager) Add(cam *model.Camera, consumer camera.EventConsumer) error {
 	}
 	m.channels[cam.ID] = &ch
 
+	m.setInitialState(cam)
+
 	m.l.Logf(logger.InfoLevel, "Camera %s [ %d ] registered", cam.Info.Name, cam.ID)
 	return nil
 }
@@ -249,4 +251,31 @@ func (m *Manager) Remove(id model.CameraID) error {
 	}
 
 	return nil
+}
+
+func (m *Manager) setInitialState(cam *model.Camera) {
+	if cam.ExternalArchiveID != "" {
+		pause := false
+		quality := uint(0)
+
+		switch cam.Info.Mode {
+		case rms_cctv.RecordingMode_ByEvents:
+			pause = true
+		case rms_cctv.RecordingMode_Optimal:
+			quality = 1
+		}
+
+		var err error
+		if err = m.backend.SetQuality(cam.ExternalArchiveID, quality); err != nil {
+			m.l.Logf(logger.WarnLevel, "Set initial quality for %d failed: %s", cam.ID, err)
+		}
+		if pause {
+			err = m.backend.StartRecording(cam.ExternalArchiveID)
+		} else {
+			err = m.backend.StopRecording(cam.ExternalArchiveID)
+		}
+		if err != nil {
+			m.l.Logf(logger.WarnLevel, "Set initial state for %d failed: %s", cam.ID, err)
+		}
+	}
 }
