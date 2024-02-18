@@ -3,7 +3,7 @@ module github.com/RacoonMediaServer/rms-cctv
 go 1.20
 
 require (
-	github.com/RacoonMediaServer/rms-packages v1.11.3
+	github.com/RacoonMediaServer/rms-packages v1.11.10
 	github.com/golang/mock v1.6.0
 	github.com/neirolis/onvif-go v0.0.3-b11
 	github.com/urfave/cli/v2 v2.3.0

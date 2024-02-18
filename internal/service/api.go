@@ -120,7 +120,7 @@ func (s Service) GetReplayUri(ctx context.Context, request *rms_cctv.GetReplayUr
 
 	ts := time.Time{}
 	if request.Timestamp != nil {
-		ts = request.Timestamp.AsTime()
+		ts = time.Unix(int64(*request.Timestamp), 0)
 	}
 
 	uri, err := s.CameraManager.GetReplayUri(model.CameraID(request.CameraId), request.Transport, ts)

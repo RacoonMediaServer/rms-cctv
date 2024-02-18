@@ -9,7 +9,6 @@ import (
 	"github.com/RacoonMediaServer/rms-packages/pkg/video"
 	"go-micro.dev/v4/client"
 	"go-micro.dev/v4/logger"
-	"google.golang.org/protobuf/types/known/timestamppb"
 	"net/url"
 	"time"
 )
@@ -116,7 +115,7 @@ func (b externalBackend) GetReplayUri(id ID, transport video.Transport, timestam
 	req := cctv_backend.GetRecordingUriRequest{
 		StreamId:  string(id),
 		Transport: &transport,
-		Timestamp: timestamppb.New(timestamp),
+		Timestamp: uint64(timestamp.Unix()),
 	}
 
 	resp, err := b.recordingService.GetRecordingUri(context.TODO(), &req, client.WithRequestTimeout(reqTimeout))
