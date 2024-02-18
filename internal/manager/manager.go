@@ -85,12 +85,15 @@ func (m *Manager) Register(cam *model.Camera) error {
 	}
 	urls := make([]*url.URL, len(profiles))
 	for i := range profiles {
-		u, err = dev.GetStreamUri(profiles[i])
+		profileUri, err := dev.GetStreamUri(profiles[i])
 		if err != nil {
 			return fmt.Errorf("cannot get stream URL for profile %s: %w", profiles[i], err)
 		}
-		urls[i] = u
+		profileUri.User = u.User
+		urls[i] = profileUri
 	}
+
+	m.l.Logf(logger.InfoLevel, "Profile URI's: %+v", urls)
 
 	cam.PrimaryProfileToken = profiles[0]
 	externalId := fmt.Sprintf("ch%d/main", cam.ID)
