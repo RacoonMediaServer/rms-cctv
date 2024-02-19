@@ -24,7 +24,6 @@ type onvifController struct {
 	dev            *goonvif.Device
 	ctx            context.Context
 	snapshotUrl    *url.URL
-	streamUrl      *url.URL
 	eventsEndpoint string
 }
 
@@ -63,7 +62,7 @@ func (c *onvifController) GetEvents() ([]*iva.Event, error) {
 		return nil, err
 	}
 
-	c.l.Logf(logger.DebugLevel, "GetEvents...")
+	c.l.Logf(logger.TraceLevel, "GetEvents...")
 
 	ctx, cancel := context.WithTimeout(c.ctx, maxNetworkTimeout)
 	defer cancel()
@@ -78,7 +77,7 @@ func (c *onvifController) GetEvents() ([]*iva.Event, error) {
 		return nil, fmt.Errorf("method PullMessages failed: %w", err)
 	}
 
-	c.l.Logf(logger.DebugLevel, "GetEvents READY")
+	c.l.Logf(logger.TraceLevel, "GetEvents READY")
 
 	var events []*iva.Event
 	for _, ev := range response.NotificationMessage {
@@ -153,9 +152,6 @@ func (c *onvifController) GetStreamUri(profileToken string) (*url.URL, error) {
 	if err = c.connect(); err != nil {
 		return nil, err
 	}
-	if c.streamUrl != nil {
-		return c.streamUrl, nil
-	}
 
 	c.l.Logf(logger.DebugLevel, "GetStreamUri...")
 
@@ -167,14 +163,14 @@ func (c *onvifController) GetStreamUri(profileToken string) (*url.URL, error) {
 	if err := c.dev.CreateRequest(request).WithContext(ctx).Do().Unmarshal(&response); err != nil {
 		return nil, fmt.Errorf("method GetStreamUri failed: %w", err)
 	}
-	c.streamUrl, err = url.Parse(string(response.MediaUri.Uri))
+	streamUrl, err := url.Parse(string(response.MediaUri.Uri))
 	if err != nil {
 		return nil, fmt.Errorf("parse stream URL failed: %w", err)
 	}
 
-	c.l.Logf(logger.DebugLevel, "GetStreamUri READY")
+	c.l.Logf(logger.DebugLevel, "GetStreamUri READY: %s", streamUrl)
 
-	return c.streamUrl, nil
+	return streamUrl, nil
 }
 
 func (c *onvifController) GetProfiles() ([]string, error) {
@@ -193,12 +189,12 @@ func (c *onvifController) GetProfiles() ([]string, error) {
 		return nil, fmt.Errorf("method GetProfiles failed: %w", err)
 	}
 
-	c.l.Logf(logger.DebugLevel, "GetProfiles READY")
-
 	var result []string
 	for i := range response.Profiles {
 		result = append(result, string(response.Profiles[i].Token))
 	}
+
+	c.l.Logf(logger.DebugLevel, "GetProfiles READY: %+v", result)
 	return result, nil
 }
 
@@ -256,7 +252,6 @@ func (c *onvifController) subscribe() error {
 
 func (c *onvifController) clearCache() {
 	c.dev = nil
-	c.streamUrl = nil
 	c.eventsEndpoint = ""
 	c.snapshotUrl = nil
 }
