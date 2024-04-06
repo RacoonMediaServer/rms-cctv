@@ -3,10 +3,10 @@ package cctv
 import (
 	"context"
 	"fmt"
+	"github.com/RacoonMediaServer/rms-packages/pkg/media"
 	cctv_backend "github.com/RacoonMediaServer/rms-packages/pkg/service/cctv-backend"
 	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
 	"github.com/RacoonMediaServer/rms-packages/pkg/service/servicemgr"
-	"github.com/RacoonMediaServer/rms-packages/pkg/video"
 	"go-micro.dev/v4/client"
 	"go-micro.dev/v4/logger"
 	"net/url"
@@ -43,7 +43,7 @@ func (b externalBackend) DeleteStream(id ID) error {
 	return err
 }
 
-func (b externalBackend) GetStreamUri(id ID, transport video.Transport) (*url.URL, error) {
+func (b externalBackend) GetStreamUri(id ID, transport media.Transport) (*url.URL, error) {
 	req := cctv_backend.GetStreamUriRequest{
 		StreamId:  string(id),
 		Transport: &transport,
@@ -113,7 +113,7 @@ func (b externalBackend) DeleteArchive(id ID) error {
 	return err
 }
 
-func (b externalBackend) GetReplayUri(id ID, transport video.Transport, timestamp time.Time) (*url.URL, error) {
+func (b externalBackend) GetReplayUri(id ID, transport media.Transport, timestamp time.Time) (*url.URL, error) {
 	req := cctv_backend.GetRecordingUriRequest{
 		StreamId:  string(id),
 		Transport: &transport,

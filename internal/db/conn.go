@@ -2,6 +2,7 @@ package db
 
 import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/model"
+	"github.com/RacoonMediaServer/rms-cctv/internal/service/schedules"
 	"github.com/RacoonMediaServer/rms-packages/pkg/configuration"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -16,8 +17,12 @@ func Connect(config configuration.Database) (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = db.AutoMigrate(&model.Camera{}); err != nil {
+	if err = db.AutoMigrate(&model.Camera{}, &model.Schedule{}); err != nil {
 		return nil, err
 	}
-	return &Database{conn: db}, nil
+
+	result := Database{conn: db}
+	_ = result.AddSchedule(schedules.DefaultSchedule)
+
+	return &result, nil
 }

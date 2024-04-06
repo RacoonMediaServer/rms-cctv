@@ -9,7 +9,9 @@ import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/manager"
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactions"
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactor"
-	"github.com/RacoonMediaServer/rms-cctv/internal/service"
+	"github.com/RacoonMediaServer/rms-cctv/internal/service/cameras"
+	"github.com/RacoonMediaServer/rms-cctv/internal/service/schedules"
+	"github.com/RacoonMediaServer/rms-cctv/internal/service/system"
 	"github.com/RacoonMediaServer/rms-cctv/internal/settings"
 	"github.com/RacoonMediaServer/rms-cctv/internal/timeline"
 	"github.com/RacoonMediaServer/rms-packages/pkg/pubsub"
@@ -72,7 +74,11 @@ func main() {
 
 	camFactory := camera.NewFactory()
 	settingsProvider := settings.New()
-	cctvService := service.Service{
+
+	schedulesService := schedules.Service{
+		Database: database,
+	}
+	camerasService := cameras.Service{
 		Database:         database,
 		CameraManager:    manager.New(camFactory, cctv.New(cfg.Cctv.Backend, microService)),
 		Reactor:          reactor.New(),
@@ -80,15 +86,27 @@ func main() {
 		ReactFactory:     reactions.NewFactory(pubsub.NewPublisher(microService), settingsProvider),
 		SettingsProvider: settingsProvider,
 		Timeline:         timeline.New(),
+		Schedules:        &schedulesService,
+	}
+	systemService := system.Service{
+		SettingsProvider: settingsProvider,
 	}
 
-	if err = cctvService.Initialize(); err != nil {
+	if err = camerasService.Initialize(); err != nil {
 		logger.Fatalf("Initialize service failed: %s", err)
 	}
 
 	// регистрируем хендлеры
-	if err = rms_cctv.RegisterRmsCctvHandler(microService.Server(), &cctvService); err != nil {
-		logger.Fatalf("Register microService failed: %s", err)
+	if err = rms_cctv.RegisterCamerasHandler(microService.Server(), &camerasService); err != nil {
+		logger.Fatalf("Register cameras service failed: %s", err)
+	}
+
+	if err = rms_cctv.RegisterSchedulesHandler(microService.Server(), &schedulesService); err != nil {
+		logger.Fatalf("Register schedules service failed: %s", err)
+	}
+
+	if err = rms_cctv.RegisterSettingsHandler(microService.Server(), &systemService); err != nil {
+		logger.Fatalf("Register settings service failed: %s", err)
 	}
 
 	if err = microService.Run(); err != nil {

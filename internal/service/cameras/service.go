@@ -1,4 +1,4 @@
-package service
+package cameras
 
 import (
 	"fmt"
@@ -6,7 +6,6 @@ import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactions"
 	"github.com/RacoonMediaServer/rms-cctv/internal/settings"
 	"github.com/RacoonMediaServer/rms-cctv/internal/timeline"
-	"github.com/RacoonMediaServer/rms-packages/pkg/schedule"
 	"go-micro.dev/v4"
 	"go-micro.dev/v4/logger"
 )
@@ -19,6 +18,7 @@ type Service struct {
 	ReactFactory     reactions.Factory
 	SettingsProvider settings.Provider
 	Timeline         timeline.Timeline
+	Schedules        Schedules
 }
 
 func (s Service) Initialize() error {
@@ -38,15 +38,12 @@ func (s Service) Initialize() error {
 }
 
 func (s Service) registerCamera(cam *model.Camera) error {
-	sched, err := schedule.Parse(cam.Info.Schedule)
-	if err != nil {
-		return fmt.Errorf("parse schedule failed: %w", err)
-	}
+	sched := s.Schedules.GetSchedule(cam.Info.Schedule, true)
 
 	if err := s.CameraManager.Add(cam, s.Reactor.PushEvent); err != nil {
 		return fmt.Errorf("manager: %w", err)
 	}
 
-	s.Reactor.SetReactions(cam.ID, s.makeEventReactions(cam.Info, sched))
+	s.Reactor.SetReactions(cam.ID, s.makeEventReactions(cam.Info, sched.Schedule))
 	return nil
 }

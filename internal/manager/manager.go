@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/RacoonMediaServer/rms-packages/pkg/video"
+	"github.com/RacoonMediaServer/rms-packages/pkg/media"
 	"net/url"
 	"sync"
 	"time"
@@ -156,7 +156,7 @@ func (m *Manager) ListCameras() []*rms_cctv.Camera {
 	return list
 }
 
-func (m *Manager) GetStreamUri(id model.CameraID, profile model.Profile, transport video.Transport) (string, error) {
+func (m *Manager) GetStreamUri(id model.CameraID, profile model.Profile, transport media.Transport) (string, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -177,7 +177,7 @@ func (m *Manager) GetStreamUri(id model.CameraID, profile model.Profile, transpo
 	return uri.String(), err
 }
 
-func (m *Manager) GetReplayUri(id model.CameraID, transport video.Transport, timestamp time.Time) (string, error) {
+func (m *Manager) GetReplayUri(id model.CameraID, transport media.Transport, timestamp time.Time) (string, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 

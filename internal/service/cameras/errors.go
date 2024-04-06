@@ -1,4 +1,4 @@
-package service
+package cameras
 
 import (
 	"fmt"

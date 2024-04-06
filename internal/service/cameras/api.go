@@ -1,27 +1,14 @@
-package service
+package cameras
 
 import (
 	"context"
 	"time"
 
 	"github.com/RacoonMediaServer/rms-cctv/internal/model"
-	"github.com/RacoonMediaServer/rms-packages/pkg/schedule"
 	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
 	"go-micro.dev/v4/logger"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
-
-func (s Service) GetSettings(ctx context.Context, empty *emptypb.Empty, settings *rms_cctv.CctvSettings) error {
-	localSettings := s.SettingsProvider.Load()
-	settings.OneEventDefaultDurationSec = localSettings.OneEventDefaultDurationSec
-	settings.EventNotifyThresholdIntervalSec = localSettings.EventNotifyThresholdIntervalSec
-	return nil
-}
-
-func (s Service) SetSettings(ctx context.Context, settings *rms_cctv.CctvSettings, empty *emptypb.Empty) error {
-	s.SettingsProvider.Save(settings)
-	return nil
-}
 
 func (s Service) GetCameras(ctx context.Context, empty *emptypb.Empty, response *rms_cctv.GetCamerasResponse) error {
 	response.Cameras = s.CameraManager.ListCameras()
@@ -35,26 +22,26 @@ func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rm
 		"method": "AddCamera",
 	})
 
-	_, err := schedule.Parse(c.Schedule)
-	if err != nil {
-		return makeError(l, "parse camera schedule failed: %w", err)
+	schedule := s.Schedules.GetSchedule(c.Schedule, false)
+	if schedule == nil {
+		return makeError(l, "cannot find associating schedule")
 	}
 
 	// TODO: очень много вариантов нарушить консистентность, но пока так
 	cam := model.Camera{Info: c}
-	if err = s.Database.AddCamera(&cam); err != nil {
+	if err := s.Database.AddCamera(&cam); err != nil {
 		return makeError(l, "add camera to database failed: %s", err)
 	}
 	cam.Info.Id = uint32(cam.ID)
 
-	if err = s.CameraManager.Register(&cam); err != nil {
+	if err := s.CameraManager.Register(&cam); err != nil {
 		if err := s.Database.RemoveCamera(cam.ID); err != nil {
 			l.Logf(logger.ErrorLevel, "Remove camera failed: %s", err)
 		}
 		return makeError(l, "register camera on the external CCTV system failed: %w", err)
 	}
 
-	if err = s.Database.UpdateCamera(&cam); err != nil {
+	if err := s.Database.UpdateCamera(&cam); err != nil {
 		if err := s.CameraManager.Unregister(&cam); err != nil {
 			l.Logf(logger.ErrorLevel, "Unregister camera failed: %s", err)
 		}
@@ -64,7 +51,7 @@ func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rm
 		return makeError(l, "add camera to database failed: %w", err)
 	}
 
-	if err = s.registerCamera(&cam); err != nil {
+	if err := s.registerCamera(&cam); err != nil {
 		if err := s.Database.RemoveCamera(cam.ID); err != nil {
 			l.Logf(logger.ErrorLevel, "Remove camera failed: %s", err)
 		}
@@ -79,7 +66,7 @@ func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rm
 	return nil
 }
 
-func (s Service) ModifyCamera(ctx context.Context, c *rms_cctv.Camera, empty *emptypb.Empty) error {
+func (s Service) ModifyCamera(ctx context.Context, c *rms_cctv.ModifyCameraRequest, empty *emptypb.Empty) error {
 	//TODO implement me
 	panic("implement me")
 }

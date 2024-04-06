@@ -1,4 +1,4 @@
-package service
+package cameras
 
 import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/model"

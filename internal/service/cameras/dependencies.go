@@ -1,4 +1,4 @@
-package service
+package cameras
 
 import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/accessor"
@@ -6,8 +6,8 @@ import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/iva"
 	"github.com/RacoonMediaServer/rms-cctv/internal/model"
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactor"
+	"github.com/RacoonMediaServer/rms-packages/pkg/media"
 	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
-	"github.com/RacoonMediaServer/rms-packages/pkg/video"
 	"time"
 )
 
@@ -22,8 +22,8 @@ type DeviceManager interface {
 	GetCamera(id model.CameraID) (accessor.Camera, error)
 	GetArchive(id model.CameraID) (accessor.Archive, error)
 
-	GetStreamUri(id model.CameraID, profile model.Profile, transport video.Transport) (string, error)
-	GetReplayUri(id model.CameraID, transport video.Transport, timestamp time.Time) (string, error)
+	GetStreamUri(id model.CameraID, profile model.Profile, transport media.Transport) (string, error)
+	GetReplayUri(id model.CameraID, transport media.Transport, timestamp time.Time) (string, error)
 }
 
 type Reactor interface {
@@ -37,4 +37,8 @@ type Database interface {
 	LoadCameras() ([]*model.Camera, error)
 	UpdateCamera(camera *model.Camera) error
 	RemoveCamera(id model.CameraID) error
+}
+
+type Schedules interface {
+	GetSchedule(id string, defaultIfNotExists bool) *model.Schedule
 }
