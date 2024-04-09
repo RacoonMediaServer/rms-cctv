@@ -1,6 +1,8 @@
 package db
 
-import "github.com/RacoonMediaServer/rms-cctv/internal/model"
+import (
+	"github.com/RacoonMediaServer/rms-cctv/internal/model"
+)
 
 func (d *Database) LoadCameras() ([]*model.Camera, error) {
 	var result []*model.Camera
@@ -23,4 +25,12 @@ func (d *Database) UpdateCamera(camera *model.Camera) error {
 
 func (d *Database) RemoveCamera(id model.CameraID) error {
 	return d.conn.Model(&model.Camera{}).Unscoped().Delete(&model.Camera{}, id).Error
+}
+
+func (d *Database) GetCamera(id model.CameraID) (*model.Camera, error) {
+	var cam model.Camera
+	if err := d.conn.First(&cam, "id = ?", id).Error; err != nil {
+		return nil, err
+	}
+	return &cam, nil
 }

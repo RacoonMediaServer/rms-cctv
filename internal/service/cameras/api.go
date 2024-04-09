@@ -11,16 +11,30 @@ import (
 )
 
 func (s Service) GetCameras(ctx context.Context, empty *emptypb.Empty, response *rms_cctv.GetCamerasResponse) error {
-	response.Cameras = s.CameraManager.ListCameras()
+	l := logger.Fields(map[string]interface{}{
+		"from":   "cameras",
+		"method": "GetCameras",
+	})
+	l.Logf(logger.DebugLevel, "Request")
+
+	cameras, err := s.Database.LoadCameras()
+	if err != nil {
+		return makeError(l, "fetch cameras failed: %w", err)
+	}
+	response.Cameras = make([]*rms_cctv.Camera, len(cameras))
+	for i := range cameras {
+		response.Cameras[i] = cameras[i].Info
+	}
 	return nil
 }
 
 func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rms_cctv.AddCameraResponse) error {
 	l := logger.Fields(map[string]interface{}{
-		"from":   "service",
+		"from":   "cameras",
 		"camera": c.Name,
 		"method": "AddCamera",
 	})
+	l.Logf(logger.DebugLevel, "Request")
 
 	schedule := s.Schedules.GetSchedule(c.Schedule, false)
 	if schedule == nil {
@@ -67,16 +81,49 @@ func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rm
 }
 
 func (s Service) ModifyCamera(ctx context.Context, c *rms_cctv.ModifyCameraRequest, empty *emptypb.Empty) error {
-	//TODO implement me
-	panic("implement me")
+	l := logger.Fields(map[string]interface{}{
+		"from":   "cameras",
+		"camera": c.Id,
+		"method": "ModifyCamera",
+	})
+	l.Logf(logger.DebugLevel, "Request")
+	id := model.CameraID(c.Id)
+
+	cam, err := s.Database.GetCamera(id)
+	if err != nil {
+		return makeError(l, "fetch camera failed: %w", err)
+	}
+
+	schedule := s.Schedules.GetSchedule(c.Schedule, false)
+	if schedule == nil {
+		return makeError(l, "cannot find associating schedule")
+	}
+
+	cam.Info.KeepDays = c.KeepDays
+	cam.Info.Mode = c.Mode
+	cam.Info.Schedule = c.Schedule
+
+	if err = s.Database.UpdateCamera(cam); err != nil {
+		return makeError(l, "update camera in database failed: %w", err)
+	}
+
+	if err = s.CameraManager.Modify(id, c.KeepDays, c.Mode); err != nil {
+		l.Logf(logger.WarnLevel, "modify camera in runtime failed: %s", err)
+	}
+
+	s.Reactor.DropReactions(id)
+	s.Reactor.SetReactions(id, s.makeEventReactions(cam.Info, schedule.Schedule))
+
+	return nil
 }
 
 func (s Service) DeleteCamera(ctx context.Context, request *rms_cctv.DeleteCameraRequest, empty *emptypb.Empty) error {
 	l := logger.Fields(map[string]interface{}{
-		"from":   "service",
+		"from":   "cameras",
 		"camera": request.CameraId,
 		"method": "DeleteCamera",
 	})
+	l.Logf(logger.DebugLevel, "Request")
 
 	id := model.CameraID(request.CameraId)
 	if err := s.Database.RemoveCamera(id); err != nil {
@@ -90,10 +137,12 @@ func (s Service) DeleteCamera(ctx context.Context, request *rms_cctv.DeleteCamer
 
 func (s Service) GetLiveUri(ctx context.Context, request *rms_cctv.GetLiveUriRequest, response *rms_cctv.GetUriResponse) error {
 	l := logger.Fields(map[string]interface{}{
-		"from":   "service",
+		"from":   "cameras",
 		"camera": request.CameraId,
 		"method": "GetLiveUri",
 	})
+	l.Logf(logger.DebugLevel, "Request")
+
 	profile := model.PrimaryProfile
 	if !request.MainProfile {
 		profile = model.SecondaryProfile
@@ -110,10 +159,11 @@ func (s Service) GetLiveUri(ctx context.Context, request *rms_cctv.GetLiveUriReq
 
 func (s Service) GetReplayUri(ctx context.Context, request *rms_cctv.GetReplayUriRequest, response *rms_cctv.GetUriResponse) error {
 	l := logger.Fields(map[string]interface{}{
-		"from":   "service",
+		"from":   "cameras",
 		"camera": request.CameraId,
 		"method": "GetReplayUri",
 	})
+	l.Logf(logger.DebugLevel, "Request")
 
 	ts := time.Time{}
 	if request.Timestamp != nil {
@@ -131,10 +181,12 @@ func (s Service) GetReplayUri(ctx context.Context, request *rms_cctv.GetReplayUr
 
 func (s Service) GetSnapshot(ctx context.Context, request *rms_cctv.GetSnapshotRequest, response *rms_cctv.GetSnapshotResponse) error {
 	l := logger.Fields(map[string]interface{}{
-		"from":   "service",
+		"from":   "cameras",
 		"camera": request.CameraId,
 		"method": "GetSnapshot",
 	})
+	l.Logf(logger.DebugLevel, "Request")
+
 	cam, err := s.CameraManager.GetCamera(model.CameraID(request.CameraId))
 	if err != nil {
 		return makeError(l, "operation failed: %w", err)

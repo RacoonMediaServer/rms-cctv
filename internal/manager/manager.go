@@ -144,18 +144,6 @@ func (m *Manager) GetCamera(id model.CameraID) (accessor.Camera, error) {
 	return &a, nil
 }
 
-func (m *Manager) ListCameras() []*rms_cctv.Camera {
-	m.mu.RLock()
-	defer m.mu.RUnlock()
-
-	list := make([]*rms_cctv.Camera, 0, len(m.channels))
-	for _, ch := range m.channels {
-		list = append(list, ch.camera.Info)
-	}
-
-	return list
-}
-
 func (m *Manager) GetStreamUri(id model.CameraID, profile model.Profile, transport media.Transport) (string, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -243,6 +231,26 @@ func (m *Manager) removeAndReturn(id model.CameraID) *model.Camera {
 	ch.l.Stop()
 	delete(m.channels, id)
 	return ch.camera
+}
+
+func (m *Manager) Modify(id model.CameraID, keepDays uint32, mode rms_cctv.RecordingMode) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	ch, ok := m.channels[id]
+	if !ok {
+		return errors.New("camera not found")
+	}
+	if keepDays != ch.camera.Info.KeepDays {
+		// TODO: m.backend.SetRecordingDepth
+		ch.camera.Info.KeepDays = keepDays
+	}
+	if mode != ch.camera.Info.Mode {
+		ch.camera.Info.Mode = mode
+		m.setInitialState(ch.camera)
+	}
+
+	return nil
 }
 
 func (m *Manager) Remove(id model.CameraID) error {

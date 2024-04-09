@@ -15,8 +15,8 @@ type DeviceManager interface {
 	Register(cam *model.Camera) error
 	Unregister(cam *model.Camera) error
 
-	ListCameras() []*rms_cctv.Camera
 	Add(cam *model.Camera, consumer camera.EventConsumer) error
+	Modify(id model.CameraID, keepDays uint32, mode rms_cctv.RecordingMode) error
 	Remove(id model.CameraID) error
 
 	GetCamera(id model.CameraID) (accessor.Camera, error)
@@ -35,6 +35,7 @@ type Reactor interface {
 type Database interface {
 	AddCamera(camera *model.Camera) error
 	LoadCameras() ([]*model.Camera, error)
+	GetCamera(id model.CameraID) (*model.Camera, error)
 	UpdateCamera(camera *model.Camera) error
 	RemoveCamera(id model.CameraID) error
 }
