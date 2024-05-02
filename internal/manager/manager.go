@@ -283,9 +283,9 @@ func (m *Manager) setInitialState(cam *model.Camera) {
 			m.l.Logf(logger.WarnLevel, "Set initial quality for %d failed: %s", cam.ID, err)
 		}
 		if pause {
-			err = m.backend.StartRecording(cam.ExternalArchiveID)
-		} else {
 			err = m.backend.StopRecording(cam.ExternalArchiveID)
+		} else {
+			err = m.backend.StartRecording(cam.ExternalArchiveID)
 		}
 		if err != nil {
 			m.l.Logf(logger.WarnLevel, "Set initial state for %d failed: %s", cam.ID, err)
