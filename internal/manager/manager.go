@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/RacoonMediaServer/rms-packages/pkg/media"
 	"net/url"
 	"sync"
 	"time"
+
+	"github.com/RacoonMediaServer/rms-packages/pkg/media"
 
 	"github.com/RacoonMediaServer/rms-cctv/internal/accessor"
 	"github.com/RacoonMediaServer/rms-cctv/internal/camera"
@@ -233,7 +234,7 @@ func (m *Manager) removeAndReturn(id model.CameraID) *model.Camera {
 	return ch.camera
 }
 
-func (m *Manager) Modify(id model.CameraID, keepDays uint32, mode rms_cctv.RecordingMode) error {
+func (m *Manager) Modify(id model.CameraID, name string, keepDays uint32, mode rms_cctv.RecordingMode) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -249,6 +250,7 @@ func (m *Manager) Modify(id model.CameraID, keepDays uint32, mode rms_cctv.Recor
 		ch.camera.Info.Mode = mode
 		m.setInitialState(ch.camera)
 	}
+	ch.camera.Info.Name = name
 
 	return nil
 }

@@ -36,7 +36,7 @@ func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rm
 	})
 	l.Logf(logger.DebugLevel, "Request")
 
-	schedule := s.Schedules.GetSchedule(c.Schedule, false)
+	schedule := s.Schedules.FindSchedule(c.Schedule, false)
 	if schedule == nil {
 		return makeError(l, "cannot find associating schedule")
 	}
@@ -94,11 +94,12 @@ func (s Service) ModifyCamera(ctx context.Context, c *rms_cctv.ModifyCameraReque
 		return makeError(l, "fetch camera failed: %w", err)
 	}
 
-	schedule := s.Schedules.GetSchedule(c.Schedule, false)
+	schedule := s.Schedules.FindSchedule(c.Schedule, false)
 	if schedule == nil {
 		return makeError(l, "cannot find associating schedule")
 	}
 
+	cam.Info.Name = c.Name
 	cam.Info.KeepDays = c.KeepDays
 	cam.Info.Mode = c.Mode
 	cam.Info.Schedule = c.Schedule
@@ -107,7 +108,7 @@ func (s Service) ModifyCamera(ctx context.Context, c *rms_cctv.ModifyCameraReque
 		return makeError(l, "update camera in database failed: %w", err)
 	}
 
-	if err = s.CameraManager.Modify(id, c.KeepDays, c.Mode); err != nil {
+	if err = s.CameraManager.Modify(id, c.Name, c.KeepDays, c.Mode); err != nil {
 		l.Logf(logger.WarnLevel, "modify camera in runtime failed: %s", err)
 	}
 

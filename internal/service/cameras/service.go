@@ -2,6 +2,7 @@ package cameras
 
 import (
 	"fmt"
+
 	"github.com/RacoonMediaServer/rms-cctv/internal/model"
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactions"
 	"github.com/RacoonMediaServer/rms-cctv/internal/settings"
@@ -38,7 +39,7 @@ func (s Service) Initialize() error {
 }
 
 func (s Service) registerCamera(cam *model.Camera) error {
-	sched := s.Schedules.GetSchedule(cam.Info.Schedule, true)
+	sched := s.Schedules.FindSchedule(cam.Info.Schedule, true)
 
 	if err := s.CameraManager.Add(cam, s.Reactor.PushEvent); err != nil {
 		return fmt.Errorf("manager: %w", err)

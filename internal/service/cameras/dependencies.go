@@ -1,6 +1,8 @@
 package cameras
 
 import (
+	"time"
+
 	"github.com/RacoonMediaServer/rms-cctv/internal/accessor"
 	"github.com/RacoonMediaServer/rms-cctv/internal/camera"
 	"github.com/RacoonMediaServer/rms-cctv/internal/iva"
@@ -8,7 +10,6 @@ import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactor"
 	"github.com/RacoonMediaServer/rms-packages/pkg/media"
 	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
-	"time"
 )
 
 type DeviceManager interface {
@@ -16,7 +17,7 @@ type DeviceManager interface {
 	Unregister(cam *model.Camera) error
 
 	Add(cam *model.Camera, consumer camera.EventConsumer) error
-	Modify(id model.CameraID, keepDays uint32, mode rms_cctv.RecordingMode) error
+	Modify(id model.CameraID, name string, keepDays uint32, mode rms_cctv.RecordingMode) error
 	Remove(id model.CameraID) error
 
 	GetCamera(id model.CameraID) (accessor.Camera, error)
@@ -41,5 +42,5 @@ type Database interface {
 }
 
 type Schedules interface {
-	GetSchedule(id string, defaultIfNotExists bool) *model.Schedule
+	FindSchedule(id string, defaultIfNotExists bool) *model.Schedule
 }

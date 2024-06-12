@@ -29,6 +29,10 @@ func (d *Database) GetSchedule(id string) (*model.Schedule, error) {
 	return &sched, nil
 }
 
+func (d *Database) UpdateSchedule(sched *model.Schedule) error {
+	return d.conn.Save(sched).Error
+}
+
 func (d *Database) RemoveSchedule(id string) error {
-	return d.conn.Model(&model.Schedule{}).Unscoped().Delete(&model.Schedule{}, id).Error
+	return d.conn.Model(&model.Schedule{}).Unscoped().Where("id = ?", id).Delete(&model.Schedule{}).Error
 }
