@@ -14,6 +14,7 @@ import (
 
 type Service struct {
 	Database Database
+	Registry Registry
 }
 
 func (s Service) GetSchedulesList(ctx context.Context, empty *emptypb.Empty, response *rms_cctv.GetScheduleListResponse) error {
@@ -61,6 +62,8 @@ func (s Service) AddSchedule(ctx context.Context, reqSchedule *rms_cctv.Schedule
 		l.Logf(logger.ErrorLevel, "Add schedule to database failed: %s", err)
 		return err
 	}
+	s.Registry.Store(id, parsed)
+
 	response.Id = id
 	l.Logf(logger.InfoLevel, "%s added, %+v", id, sched.Intervals)
 	return nil
@@ -79,6 +82,7 @@ func (s Service) DeleteSchedule(ctx context.Context, request *rms_cctv.DeleteSch
 	err := s.Database.RemoveSchedule(request.Id)
 	if err == nil {
 		l.Log(logger.InfoLevel, "Removed")
+		s.Registry.Delete(request.Id)
 	} else {
 		l.Logf(logger.WarnLevel, "Remove failed: %s", err)
 	}
@@ -129,6 +133,7 @@ func (s Service) ModifySchedule(ctx context.Context, request *rms_cctv.Schedule,
 		l.Logf(logger.ErrorLevel, "Add schedule to database failed: %s", err)
 		return err
 	}
+	s.Registry.Store(request.Id, parsed)
 
 	l.Logf(logger.InfoLevel, "Modified %+v", sched)
 	return nil

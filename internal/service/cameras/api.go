@@ -36,7 +36,7 @@ func (s Service) AddCamera(ctx context.Context, c *rms_cctv.Camera, response *rm
 	})
 	l.Logf(logger.DebugLevel, "Request")
 
-	schedule := s.Schedules.FindSchedule(c.Schedule, false)
+	schedule := s.ScheduleRegistry.Find(c.Schedule, false)
 	if schedule == nil {
 		return makeError(l, "cannot find associating schedule")
 	}
@@ -94,7 +94,7 @@ func (s Service) ModifyCamera(ctx context.Context, c *rms_cctv.ModifyCameraReque
 		return makeError(l, "fetch camera failed: %w", err)
 	}
 
-	schedule := s.Schedules.FindSchedule(c.Schedule, false)
+	schedule := s.ScheduleRegistry.Find(c.Schedule, false)
 	if schedule == nil {
 		return makeError(l, "cannot find associating schedule")
 	}
@@ -113,7 +113,7 @@ func (s Service) ModifyCamera(ctx context.Context, c *rms_cctv.ModifyCameraReque
 	}
 
 	s.Reactor.DropReactions(id)
-	s.Reactor.SetReactions(id, s.makeEventReactions(cam.Info, schedule.Schedule))
+	s.Reactor.SetReactions(id, s.makeEventReactions(cam.Info))
 
 	return nil
 }

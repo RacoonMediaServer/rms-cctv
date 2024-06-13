@@ -19,7 +19,7 @@ type Service struct {
 	ReactFactory     reactions.Factory
 	SettingsProvider settings.Provider
 	Timeline         timeline.Timeline
-	Schedules        Schedules
+	ScheduleRegistry ScheduleRegistry
 }
 
 func (s Service) Initialize() error {
@@ -39,12 +39,10 @@ func (s Service) Initialize() error {
 }
 
 func (s Service) registerCamera(cam *model.Camera) error {
-	sched := s.Schedules.FindSchedule(cam.Info.Schedule, true)
-
 	if err := s.CameraManager.Add(cam, s.Reactor.PushEvent); err != nil {
 		return fmt.Errorf("manager: %w", err)
 	}
 
-	s.Reactor.SetReactions(cam.ID, s.makeEventReactions(cam.Info, sched.Schedule))
+	s.Reactor.SetReactions(cam.ID, s.makeEventReactions(cam.Info))
 	return nil
 }

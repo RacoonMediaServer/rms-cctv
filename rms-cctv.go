@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/RacoonMediaServer/rms-cctv/internal/camera"
 	"github.com/RacoonMediaServer/rms-cctv/internal/cctv"
 	"github.com/RacoonMediaServer/rms-cctv/internal/config"
@@ -9,6 +10,7 @@ import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/manager"
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactions"
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactor"
+	"github.com/RacoonMediaServer/rms-cctv/internal/schedregistry"
 	"github.com/RacoonMediaServer/rms-cctv/internal/service/cameras"
 	"github.com/RacoonMediaServer/rms-cctv/internal/service/schedules"
 	"github.com/RacoonMediaServer/rms-cctv/internal/service/system"
@@ -74,19 +76,21 @@ func main() {
 
 	camFactory := camera.NewFactory()
 	settingsProvider := settings.New()
+	registry := &schedregistry.Registry{}
 
 	schedulesService := schedules.Service{
 		Database: database,
+		Registry: registry,
 	}
 	camerasService := cameras.Service{
 		Database:         database,
 		CameraManager:    manager.New(camFactory, cctv.New(cfg.Cctv.Backend, microService)),
 		Reactor:          reactor.New(),
 		Notifier:         pubsub.NewPublisher(microService),
-		ReactFactory:     reactions.NewFactory(pubsub.NewPublisher(microService), settingsProvider),
+		ReactFactory:     reactions.NewFactory(pubsub.NewPublisher(microService), settingsProvider, registry),
 		SettingsProvider: settingsProvider,
 		Timeline:         timeline.New(),
-		Schedules:        &schedulesService,
+		ScheduleRegistry: registry,
 	}
 	systemService := system.Service{
 		SettingsProvider: settingsProvider,

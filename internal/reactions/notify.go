@@ -1,15 +1,15 @@
 package reactions
 
 import (
+	"time"
+
 	"github.com/RacoonMediaServer/rms-cctv/internal/accessor"
 	"github.com/RacoonMediaServer/rms-cctv/internal/iva"
 	"github.com/RacoonMediaServer/rms-cctv/internal/model"
 	"github.com/RacoonMediaServer/rms-cctv/internal/settings"
 	"github.com/RacoonMediaServer/rms-packages/pkg/events"
-	"github.com/RacoonMediaServer/rms-packages/pkg/schedule"
 	"go-micro.dev/v4"
 	"go-micro.dev/v4/logger"
-	"time"
 )
 
 // TODO: в конфиг
@@ -17,7 +17,8 @@ type notifyReaction struct {
 	pub        micro.Publisher
 	cam        accessor.Camera
 	cameraName string
-	schedule   *schedule.Schedule
+	schedule   string
+	registry   Registry
 	settings   settings.Loader
 	lastTime   time.Time
 }
@@ -35,7 +36,8 @@ func (n *notifyReaction) React(l logger.Logger, event iva.PackedEvent) {
 		return
 	}
 
-	if !n.schedule.Empty() && !n.schedule.IsActiveNow() {
+	sched := n.registry.Find(n.schedule, true)
+	if !sched.Empty() && !sched.IsActiveNow() {
 		l.Logf(logger.DebugLevel, "Skip event, schedule deny notifications")
 		return
 	}

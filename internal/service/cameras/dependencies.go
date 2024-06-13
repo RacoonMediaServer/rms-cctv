@@ -9,6 +9,7 @@ import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/model"
 	"github.com/RacoonMediaServer/rms-cctv/internal/reactor"
 	"github.com/RacoonMediaServer/rms-packages/pkg/media"
+	"github.com/RacoonMediaServer/rms-packages/pkg/schedule"
 	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
 )
 
@@ -41,6 +42,6 @@ type Database interface {
 	RemoveCamera(id model.CameraID) error
 }
 
-type Schedules interface {
-	FindSchedule(id string, defaultIfNotExists bool) *model.Schedule
+type ScheduleRegistry interface {
+	Find(id string, defaultIfNotExists bool) *schedule.Schedule
 }
