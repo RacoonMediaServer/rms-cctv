@@ -96,6 +96,10 @@ func main() {
 		SettingsProvider: settingsProvider,
 	}
 
+	if err = schedulesService.Initialize(); err != nil {
+		logger.Fatalf("Initialize schedules service failed: %s", err)
+	}
+
 	if err = camerasService.Initialize(); err != nil {
 		logger.Fatalf("Initialize service failed: %s", err)
 	}

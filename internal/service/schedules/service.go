@@ -17,6 +17,26 @@ type Service struct {
 	Registry Registry
 }
 
+func (s Service) Initialize() error {
+	l := logger.Fields(map[string]interface{}{
+		"from":   "schedules",
+		"method": "Initialize",
+	})
+	list, err := s.Database.LoadSchedules()
+	if err != nil {
+		return err
+	}
+	for _, sched := range list {
+		parsed, err := schedule.Parse(sched.Intervals)
+		if err != nil {
+			l.Logf(logger.ErrorLevel, "Parse schedule '%s:%s' failed: %s", sched.ID, sched.Name, err)
+			continue
+		}
+		s.Registry.Store(sched.ID, parsed)
+	}
+	return nil
+}
+
 func (s Service) GetSchedulesList(ctx context.Context, empty *emptypb.Empty, response *rms_cctv.GetScheduleListResponse) error {
 	l := logger.Fields(map[string]interface{}{
 		"from":   "schedules",
