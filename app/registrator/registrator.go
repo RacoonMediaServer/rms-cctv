@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
+	"time"
+
 	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
 	"github.com/urfave/cli/v2"
 	"go-micro.dev/v4"
 	"go-micro.dev/v4/client"
-	"time"
 
 	// Plugins
 	_ "github.com/go-micro/plugins/v4/registry/etcd"
@@ -45,7 +46,7 @@ func main() {
 	)
 	service.Init()
 
-	c := rms_cctv.NewRmsCctvService("rms-cctv", service.Client())
+	c := rms_cctv.NewCamerasService("rms-cctv", service.Client())
 	_, err := c.AddCamera(context.Background(), &camera, client.WithRequestTimeout(1*time.Minute))
 	if err != nil {
 		panic(err)
