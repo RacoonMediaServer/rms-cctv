@@ -11,7 +11,7 @@ import (
 type Factory interface {
 	NewErrorReaction() reactor.Reaction
 	NewRecordingReaction(archive accessor.Archive, tm timeline.Defer, qualityControl bool) reactor.Reaction
-	NewNotifyReaction(camera accessor.Camera, cameraName string, scheduleId string) reactor.Reaction
+	NewNotifyReaction(camera accessor.Camera, cameraName string, scheduleId string, stateProvider StateStorage) reactor.Reaction
 }
 
 type factory struct {
@@ -36,7 +36,7 @@ func (f factory) NewRecordingReaction(archive accessor.Archive, tm timeline.Defe
 	return newRecordingReaction(archive, f.settings, tm, qualityControl)
 }
 
-func (f factory) NewNotifyReaction(camera accessor.Camera, cameraName string, scheduleId string) reactor.Reaction {
+func (f factory) NewNotifyReaction(camera accessor.Camera, cameraName string, scheduleId string, stateProvider StateStorage) reactor.Reaction {
 	return &notifyReaction{
 		pub:        f.pub,
 		cam:        camera,
@@ -44,5 +44,6 @@ func (f factory) NewNotifyReaction(camera accessor.Camera, cameraName string, sc
 		cameraName: cameraName,
 		schedule:   scheduleId,
 		registry:   f.registry,
+		state:      stateProvider,
 	}
 }

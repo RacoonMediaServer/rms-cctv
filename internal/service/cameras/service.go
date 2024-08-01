@@ -20,6 +20,7 @@ type Service struct {
 	SettingsProvider settings.Provider
 	Timeline         timeline.Timeline
 	ScheduleRegistry ScheduleRegistry
+	StateStorage     StateStorage
 }
 
 func (s Service) Initialize() error {
@@ -35,6 +36,13 @@ func (s Service) Initialize() error {
 		}
 	}
 	logger.Infof("Loaded %d cameras", len(cameras))
+
+	state, err := s.Database.LoadState()
+	if err != nil {
+		logger.Errorf("Load state failed: %s", err)
+	} else {
+		s.StateStorage.Set(*state)
+	}
 	return nil
 }
 

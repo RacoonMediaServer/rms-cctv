@@ -198,3 +198,21 @@ func (s Service) GetSnapshot(ctx context.Context, request *rms_cctv.GetSnapshotR
 	}
 	return nil
 }
+
+func (s Service) SetNobodyAtHomeMode(ctx context.Context, request *rms_cctv.SetNobodyAtHomeModeRequest, empty *emptypb.Empty) error {
+	l := logger.Fields(map[string]interface{}{
+		"from":   "cameras",
+		"active": request.Active,
+		"method": "SetNobodyAtHomeMode",
+	})
+	l.Logf(logger.DebugLevel, "Request")
+	s.StateStorage.SetNobodyAtHome(request.Active)
+
+	updatedState := s.StateStorage.Lock()
+	defer s.StateStorage.Unlock()
+	if err := s.Database.SaveState(&updatedState); err != nil {
+		l.Logf(logger.WarnLevel, "Save state failed: %s", err)
+	}
+
+	return nil
+}

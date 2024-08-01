@@ -11,7 +11,7 @@ func (s Service) makeEventReactions(c *rms_cctv.Camera) []reactor.Reaction {
 	archive, _ := s.CameraManager.GetArchive(model.CameraID(c.Id))
 	result := []reactor.Reaction{
 		s.ReactFactory.NewErrorReaction(),
-		s.ReactFactory.NewNotifyReaction(camera, c.Name, c.Schedule),
+		s.ReactFactory.NewNotifyReaction(camera, c.Name, c.Schedule, s.StateStorage),
 	}
 	if c.Mode == rms_cctv.RecordingMode_ByEvents || c.Mode == rms_cctv.RecordingMode_Optimal {
 		result = append(result, s.ReactFactory.NewRecordingReaction(archive, s.Timeline, c.Mode == rms_cctv.RecordingMode_Optimal))

@@ -15,6 +15,7 @@ import (
 	"github.com/RacoonMediaServer/rms-cctv/internal/service/schedules"
 	"github.com/RacoonMediaServer/rms-cctv/internal/service/system"
 	"github.com/RacoonMediaServer/rms-cctv/internal/settings"
+	"github.com/RacoonMediaServer/rms-cctv/internal/state"
 	"github.com/RacoonMediaServer/rms-cctv/internal/timeline"
 	"github.com/RacoonMediaServer/rms-packages/pkg/pubsub"
 	rms_cctv "github.com/RacoonMediaServer/rms-packages/pkg/service/rms-cctv"
@@ -91,6 +92,7 @@ func main() {
 		SettingsProvider: settingsProvider,
 		Timeline:         timeline.New(),
 		ScheduleRegistry: registry,
+		StateStorage:     &state.Storage{},
 	}
 	systemService := system.Service{
 		SettingsProvider: settingsProvider,

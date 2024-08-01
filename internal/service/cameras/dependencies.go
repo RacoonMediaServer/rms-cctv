@@ -40,8 +40,18 @@ type Database interface {
 	GetCamera(id model.CameraID) (*model.Camera, error)
 	UpdateCamera(camera *model.Camera) error
 	RemoveCamera(id model.CameraID) error
+	SaveState(val *model.State) error
+	LoadState() (*model.State, error)
 }
 
 type ScheduleRegistry interface {
 	Find(id string, defaultIfNotExists bool) *schedule.Schedule
+}
+
+type StateStorage interface {
+	SetNobodyAtHome(active bool)
+	IsNobodyAtHome() bool
+	Lock() model.State
+	Unlock()
+	Set(state model.State)
 }

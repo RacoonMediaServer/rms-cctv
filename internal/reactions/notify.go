@@ -21,6 +21,7 @@ type notifyReaction struct {
 	registry   Registry
 	settings   settings.Loader
 	lastTime   time.Time
+	state      StateStorage
 }
 
 func (n *notifyReaction) thresholdInterval() time.Duration {
@@ -37,7 +38,7 @@ func (n *notifyReaction) React(l logger.Logger, event iva.PackedEvent) {
 	}
 
 	sched := n.registry.Find(n.schedule, true)
-	if !sched.Empty() && !sched.IsActiveNow() {
+	if !sched.Empty() && !sched.IsActiveNow() && !n.state.IsNobodyAtHome() {
 		l.Logf(logger.DebugLevel, "Skip event, schedule deny notifications")
 		return
 	}
