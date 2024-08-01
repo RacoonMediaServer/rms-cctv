@@ -17,7 +17,7 @@ func Connect(config configuration.Database) (*Database, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = db.AutoMigrate(&model.Camera{}, &model.Schedule{}); err != nil {
+	if err = db.AutoMigrate(&model.Camera{}, &model.Schedule{}, &cctvState{}); err != nil {
 		return nil, err
 	}
 
